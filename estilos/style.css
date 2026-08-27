@@ -11,6 +11,15 @@ cinza claro: #F5F7FA
 
 */
 
+:root {
+    --cor0:#1976D2;
+    --cor1:#F57C00;
+    --cor3:white;
+    --cor4:#0D47A1;
+    --cor5:#F5F7FA;
+
+}
+
 
 
 * {
@@ -21,6 +30,46 @@ cinza claro: #F5F7FA
 
 }
 
-body, html {
-    background-color: ;
+body, html { 
+     background-color:var(--cor5);
+     height: 100vh;
+     width: 100vw;
+
+
+}
+
+main {
+    position: relative;
+    height: 100vh;
+    width:100vw;
+
+}
+
+section#login {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: tanslate(-50%, -50%);
+
+    background-color:white;
+    width: 250px;
+    height: 500px;
+    border-radius: 20px;
+    box-shadow: 0px 0px 10px rgb(0, 0, 0, 0.450);
+
+
+
+}
+section#login > div#imagem {
+    display: block;
+    background: var(--cor4) url(../imagem/pexels-dimkidama-14999240.jpg) no-repeat;
+    background-size: cover;
+    background-position: left bottom;
+    height: 200px;
+
+}
+section#login > div#formulário {
+    display: block;
+    padding: 10px;
+
 }
