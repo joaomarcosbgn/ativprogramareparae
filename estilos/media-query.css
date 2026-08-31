@@ -7,15 +7,18 @@ tablet: 768px até 992px;
 desktop: 992px até 1200px
 */
 
- @media screen and (min-width: 768px) and (max-width: 992px) {
+ @media screen and (min-width: 768px) and (max-width: 992px) { /* CONFIGURAÇÃO PARA TABLET */
+
     section#login {
         width: 80vw;
+        height: 280px;
     }
- }
+ 
  section#login > div#imagem {
     float: left;
     width: 30%;
     height: 100%;
+
 
  }
 
@@ -24,10 +27,12 @@ desktop: 992px até 1200px
     width: 70%;
 
  }
+}
 
- @media screen and ( min-width: 992px) {
+ @media screen and ( min-width: 992px) { /* CONFIGURAÇÕES PARA DESKTOP 8*/
     section#login {
         width: 950px;
+        height: 350px;
 
     }
     section#login > div#imagem {
@@ -41,11 +46,12 @@ desktop: 992px até 1200px
         width: 50%;
 
     }
-    div#formulário > h1 {
+    div#formulario > h1 {
         font-size: 2em;
 
     }
-    div#formulario > p
+    div#formulario > p{
     font-size: 1.2em;
-    
+    margin: 20px 0px;
+    }
  }

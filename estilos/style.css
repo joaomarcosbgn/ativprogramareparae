@@ -49,7 +49,7 @@ section#login {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    
 
     background-color:white;
     width: 250px;
@@ -57,9 +57,10 @@ section#login {
     border-radius: 20px;
     box-shadow: 0px 0px 10px rgb(0, 0, 0, 0.450);
 
+    transform: translate(-50%, -50%);
     transition: width 1s, height 1s;
     transition-timing-function: ease;
-
+   
     
 
 
@@ -68,12 +69,12 @@ section#login > div#imagem {
     display: block;
     background: var(--cor4) url(../imagem/pexels-kindelmedia-8487402.jpg) no-repeat;
     background-size: cover;
-    background-position: left bottom;
+    background-position: center top;
     height: 200px;
     
 
 }
-section#login > div#formulário {
+section#login > div#formulario {
     display: block;
     padding: 10px;
 
@@ -87,7 +88,8 @@ div#formulario > p {
 }
 
 form > div.campo {
-    background-color: red;
+    background-color: var(--cor4);
+    border: 2px solid var(--cor4);
     display: block;
     width: 100%;
     height: 40px;
@@ -102,24 +104,26 @@ div.campo > label {
     
 
 }
-div.campo > i {
+div.campo > span {
     color:white;
-    background-color:black;
+    /* background-color:black; */
     font-size:2em;
     width: 40px;
     padding: 5px;
 }
 
 div.campo > input {
-    background-color:var(--cor5);
+    background-color: var(--cor5);
     font-size: 1em;
-    width: calc(100% - 44px); /*o erro está aqui! */
+    width: calc(100% - 45px);
+    
     height: 100%;
     border: 0px;
     border-radius: 8px;
-    padding: 4px;
+    transform: translateY(-12px);
 
 }
+/* div.campo > input:focus-within {} (caso queira mudar background color do input em inserir email e senha */
 
 form > input[type=submit] {
     display: block;
@@ -128,7 +132,7 @@ form > input[type=submit] {
     height: 40px;
     background-color: var(--cor4);
     color: white;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor:pointer;
    
 
@@ -155,7 +159,7 @@ form > a.botao:hover {
     background-color: var(--cor0);
     color: white;
 }
-form > a.botao > i {
+form > a.botao > span {
     font-size:0.8em;
 
 }
