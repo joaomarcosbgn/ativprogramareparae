@@ -51,7 +51,7 @@ section#login {
     left: 50%;
     
 
-    background-color:white;
+    background-color:#FDFDFD;
     width: 250px;
     height: 515px;
     border-radius: 20px;
@@ -67,11 +67,12 @@ section#login {
 }
 section#login > div#imagem {
     display: block;
-    background: var(--cor4) url(../imagem/pexels-kindelmedia-8487402.jpg) no-repeat;
+    background: white url(../imagem/bordaoamarelo.jpg) no-repeat;
     background-size: cover;
-    background-position: center top;
+    background-position: center;
     height: 200px;
-    
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
 
 }
 section#login > div#formulario {
@@ -116,7 +117,7 @@ div.campo > input {
     background-color: var(--cor5);
     font-size: 1em;
     width: calc(100% - 45px);
-    
+    padding: 4px;
     height: 100%;
     border: 0px;
     border-radius: 8px;
@@ -134,6 +135,7 @@ form > input[type=submit] {
     color: white;
     border-radius: 4px;
     cursor:pointer;
+    
    
 
 }
