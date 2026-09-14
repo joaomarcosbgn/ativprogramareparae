@@ -165,3 +165,20 @@ form > a.botao > span {
     font-size:0.8em;
 
 }
+
+form > p.cadastro {     
+    text-align: center;
+    font-size: 0.8em;
+    margin-top: 10px;
+}
+
+form > p.cadastro > a {
+    color: var(--cor4);
+    font-weight: bold;
+    text-decoration: none;
+}
+
+form > p.cadastro > a:hover {
+    color: var(--cor0);
+    text-decoration: underline;
+}
