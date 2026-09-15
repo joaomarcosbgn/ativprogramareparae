@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tela-Cadastro</title>
+    <link rel="stylesheet" href="estilos/style.css">
+    <link rel="stylesheet" href="estilos/media-query.css">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+</head>
+
+<body>
+    <main>
+        <section id="cadastro">
+            <div id="imagem"></div>
+
+            <div id="formulario-cadastro">
+                <h1>Cadastro</h1>
+
+                <p>Crie sua conta no Reparaê para encontrar ou oferecer serviços.</p>
+
+                <form action="#" method="post" autocomplete="on">
+
+                    <div class="campo">
+                        <span class="material-symbols-outlined">person</span>
+                        <input type="text" name="nome" id="inome"
+                            placeholder="Seu nome"
+                            autocomplete="name"
+                            required
+                            maxlength="50">
+                        <label for="inome">Nome</label>
+                    </div>
+
+                    <div class="campo">
+                        <span class="material-symbols-outlined">mail</span>
+                        <input type="email" name="email" id="iemail"
+                            placeholder="Seu e-mail"
+                            autocomplete="email"
+                            required
+                            maxlength="50">
+                        <label for="iemail">E-mail</label>
+                    </div>
+
+                    <div class="campo">
+                        <span class="material-symbols-outlined">key</span>
+                        <input type="password" name="senha" id="isenha"
+                            placeholder="Sua senha"
+                            autocomplete="new-password"
+                            required
+                            minlength="8"
+                            maxlength="20">
+                        <label for="isenha">Senha</label>
+                    </div>
+
+                    <div class="campo">
+                        <span class="material-symbols-outlined">group</span>
+                        <select name="tipo" id="itipo" required>
+                            <option value="" disabled selected>Tipo de usuário</option>
+                            <option value="cliente">Cliente</option>
+                            <option value="profissional">Profissional</option>
+                        </select>
+                        <label for="itipo">Tipo de usuário</label>
+                    </div>
+
+                    <input type="submit" value="Cadastrar">
+
+                    <p class="cadastro">
+                        Já tem uma conta? <a href="index.html">Entrar</a>
+                    </p>
+
+                </form>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
