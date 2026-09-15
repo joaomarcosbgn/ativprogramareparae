@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware  # Importação do CORS
 from sqlalchemy.orm import Session
 
 import models
@@ -14,6 +15,15 @@ app = FastAPI(
     title="Reparaê API",
     description="API de cadastro de usuários do Reparaê",
     version="1.0.0",
+)
+
+# Configuração do CORS para liberar requisições de páginas HTML locais/externas
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
