@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tela-Login</title>
-    <link rel="stylesheet" href="estilos/style.css" >
+    <link rel="stylesheet" href="estilos/style.css">
     <link rel="stylesheet" href="estilos/media-query.css">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 </head>
 <body>
     <main>
         <section id="login">
-            <div id="imagem"> </div>
+            <div id="imagem"></div>
 
             <div id="formulario">
                 <h1>Login</h1> 
@@ -19,25 +19,30 @@
                 <form id="formLogin" autocomplete="on">
                     <div class="campo"> 
                         <span class="material-symbols-outlined">person</span>
-                        <input type="email" name="login" id="ilogin" placeholder="Seu e-mail" autocomplete="email" required maxlength="30">
-                        <label for="ilogin">Login</label> </div>
-                    <div class="campo">
-                    <span class="material-symbols-outlined">key</span>
-                        <input type="password" name="senha" id="isenha" placeholder="Sua senha" autocomplete="current-password" required minlength="8" maxlength="20" >
-                        <label for="isenha">Senha</label>
+                        <input type="email" name="login" id="email" placeholder="Seu e-mail" autocomplete="email" required>
+                        <label for="email">Login</label> 
                     </div>
-                    <input type="submit" value="Entrar">
-                    <a href="esqueci.html" class="botao">
-                        Esqueci a senha <span class="material-symbols-outlined">mail</span> </a>
-                        
-                       <p class="cadastro">
-                    Não tem uma conta? <a href="cadastro.html">Cadastre-se</a>
-                                </p> 
-                        
 
+                    <div class="campo">
+                        <span class="material-symbols-outlined">key</span>
+                        <input type="password" name="senha" id="senha" placeholder="Sua senha" autocomplete="current-password" required minlength="6">
+                        <label for="senha">Senha</label>
+                    </div>
+
+                    <input type="submit" value="Entrar">
+
+                    <a href="esqueci.html" class="botao">
+                        Esqueci a senha <span class="material-symbols-outlined">mail</span> 
+                    </a>
+                        
+                    <p class="cadastro">
+                        Não tem uma conta? <a href="cadastro.html">Cadastre-se</a>
+                    </p> 
+
+                    <!-- Parágrafo para exibir avisos ao usuário -->
+                    <p id="mensagem-resposta" style="margin-top: 15px; font-weight: bold; text-align: center;"></p>
                 </form>
             </div>
-
         </section>
     </main> 
 
