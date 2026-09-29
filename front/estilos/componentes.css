@@ -1,0 +1,425 @@
+@charset "UTF-8";
+
+/* ==========================================================================
+   COMPONENTES REUTILIZÁVEIS — REPARAÊ
+   Pensados para funcionar em qualquer página futura (busca, perfis,
+   dashboards), não só na landing. Depende de tokens.css e base.css.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------- */
+/* Botões                                                                  */
+/* ---------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  height: 48px;
+  padding: 0 var(--espaco-5);
+  border-radius: var(--raio-pill);
+  font-size: var(--texto-md);
+  font-weight: var(--peso-semibold);
+  border: 2px solid transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+}
+
+/* Ação principal da página — sempre laranja, com leve elevação de marca */
+.btn-primario {
+  background: var(--gradiente-cta);
+  color: var(--branco);
+  box-shadow: var(--sombra-laranja);
+}
+.btn-primario:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(245, 124, 0, 0.36);
+}
+.btn-primario:active {
+  transform: translateY(0);
+}
+
+/* Ação secundária — azul institucional */
+.btn-secundario {
+  background-color: var(--branco);
+  border-color: var(--borda-clara);
+  color: var(--azul-escuro);
+}
+.btn-secundario:hover {
+  border-color: var(--azul-principal);
+  background-color: var(--azul-suave);
+}
+
+/* Ação neutra, baixa ênfase (ex: dentro de um card claro) */
+.btn-texto {
+  background-color: transparent;
+  color: var(--azul-principal);
+  height: auto;
+  padding: 0;
+  font-weight: var(--peso-semibold);
+}
+.btn-texto:hover {
+  text-decoration: underline;
+}
+
+.btn-bloco {
+  width: 100%;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Campo de formulário com ícone                                          */
+/* ---------------------------------------------------------------------- */
+
+.campo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  height: 48px;
+  padding: 0 var(--espaco-3);
+  background-color: var(--cinza-claro);
+  border: 2px solid var(--borda-clara);
+  border-radius: var(--raio-pill);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.campo:focus-within {
+  border-color: var(--azul-principal);
+}
+
+.campo > .icone {
+  color: var(--texto-secundario);
+  font-size: var(--texto-lg);
+}
+
+.campo > input,
+.campo > select {
+  flex: 1;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--texto-principal);
+}
+
+.campo > input::placeholder {
+  color: var(--texto-secundario);
+}
+
+.campo > input:focus,
+.campo > select:focus {
+  outline: none;
+}
+
+/* rótulo visualmente oculto, mas presente para leitores de tela */
+.rotulo-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Card genérico                                                          */
+/* ---------------------------------------------------------------------- */
+
+.cartao {
+  background-color: var(--branco);
+  border: 1px solid var(--borda-clara);
+  border-radius: var(--raio-md);
+  padding: var(--espaco-5);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.cartao-elevado {
+  border: none;
+  box-shadow: var(--sombra-md);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Card com "mídia" — banner colorido no topo (placeholder de foto)       */
+/* pronto para receber background-image real no futuro. Usado nos cards  */
+/* de categoria e de profissional.                                       */
+/* ---------------------------------------------------------------------- */
+
+.cartao-midia {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--borda-clara);
+  border-radius: var(--raio-xl);
+  box-shadow: var(--sombra-sm);
+}
+
+.cartao-midia:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sombra-lg);
+  border-color: transparent;
+}
+
+.midia-banner {
+  position: relative;
+  height: 148px;
+  background: var(--grad-categoria, var(--gradiente-marca));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.midia-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--overlay-escuro);
+  opacity: 0.55;
+}
+
+.midia-banner .icone {
+  position: relative;
+  z-index: 1;
+  font-size: 56px;
+}
+
+.midia-corpo {
+  padding: var(--espaco-4) var(--espaco-4) var(--espaco-5);
+}
+
+.favorito {
+  position: absolute;
+  top: var(--espaco-3);
+  right: var(--espaco-3);
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.85);
+  color: var(--texto-secundario);
+  border: 0;
+  backdrop-filter: blur(2px);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.favorito:hover {
+  transform: scale(1.08);
+}
+
+.favorito.ativo {
+  color: var(--laranja-cta);
+}
+
+.favorito .icone {
+  font-size: var(--texto-lg);
+}
+
+.midia-banner .selo {
+  position: absolute;
+  top: var(--espaco-3);
+  left: var(--espaco-3);
+  z-index: 2;
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semibold);
+  color: var(--branco);
+  background-color: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 2px var(--espaco-2);
+  border-radius: var(--raio-pill);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Badge de avaliação (estrelas + nota)                                   */
+/* ---------------------------------------------------------------------- */
+
+.badge-avaliacao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+  color: var(--texto-principal);
+}
+
+.badge-avaliacao > .icone {
+  color: var(--laranja-cta);
+  font-size: var(--texto-md);
+}
+
+.badge-avaliacao > .contagem {
+  color: var(--texto-secundario);
+  font-weight: var(--peso-regular);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Chip (usado nas sugestões de busca)                                    */
+/* ---------------------------------------------------------------------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 var(--espaco-4);
+  border-radius: var(--raio-pill);
+  border: 1px solid var(--borda-clara);
+  background-color: var(--branco);
+  color: var(--texto-principal);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+}
+
+.chip:hover {
+  border-color: var(--azul-principal);
+  background-color: var(--azul-suave);
+  transform: translateY(-1px);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Cabeçalho do site (navbar)                                             */
+/* ---------------------------------------------------------------------- */
+
+.cabecalho {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 0 var(--borda-clara), 0 8px 24px rgba(13, 71, 161, 0.05);
+}
+
+.cabecalho .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+
+.marca {
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-bold);
+  color: var(--azul-escuro);
+}
+
+.marca > span {
+  color: var(--laranja-cta);
+}
+
+.nav-principal {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-6);
+}
+
+.nav-links {
+  display: flex;
+  gap: var(--espaco-5);
+}
+
+.nav-links a {
+  color: var(--texto-principal);
+  font-weight: var(--peso-medio);
+  font-size: var(--texto-sm);
+}
+
+.nav-links a:hover {
+  color: var(--azul-principal);
+}
+
+.nav-acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.botao-menu-mobile {
+  display: none;
+  background: transparent;
+  border: 0;
+  font-size: var(--texto-2xl);
+  color: var(--texto-principal);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Rodapé                                                                  */
+/* ---------------------------------------------------------------------- */
+
+.rodape {
+  background: var(--gradiente-marca);
+  color: var(--branco);
+  padding: var(--espaco-8) 0 var(--espaco-5);
+}
+
+.rodape a {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.rodape a:hover {
+  color: var(--branco);
+}
+
+.rodape-grade {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: var(--espaco-6);
+  padding-bottom: var(--espaco-6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.rodape-coluna h4 {
+  color: var(--branco);
+  font-size: var(--texto-sm);
+  margin-bottom: var(--espaco-3);
+}
+
+.rodape-coluna ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.rodape-coluna p {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: var(--texto-sm);
+}
+
+.rodape-base {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--espaco-4);
+  font-size: var(--texto-xs);
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Responsivo — componentes                                               */
+/* ---------------------------------------------------------------------- */
+
+@media screen and (max-width: 991px) {
+  .nav-links {
+    display: none;
+  }
+
+  .botao-menu-mobile {
+    display: block;
+  }
+
+  .rodape-grade {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media screen and (max-width: 599px) {
+  .rodape-grade {
+    grid-template-columns: 1fr;
+  }
+
+  .rodape-base {
+    flex-direction: column;
+    gap: var(--espaco-2);
+    text-align: center;
+  }
+}
+
+.botao-menu-mobile { width: 44px; height: 44px; overflow: hidden; }

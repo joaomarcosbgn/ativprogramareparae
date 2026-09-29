@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscar — Reparaê</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet">
+
+  <link rel="stylesheet" href="estilos/tokens.css">
+  <link rel="stylesheet" href="estilos/base.css">
+  <link rel="stylesheet" href="estilos/componentes.css">
+  <link rel="stylesheet" href="estilos/app.css">
+</head>
+<body class="corpo-app" data-tipo-usuario="cliente" data-pagina="buscar">
+
+  <header class="topo-app" id="navTopo"></header>
+
+  <main>
+    <section class="cabecalho-pagina">
+      <div class="container">
+        <h1>Buscar profissionais</h1>
+
+        <form id="formBuscaResultados" class="busca-grande" style="margin-top: var(--espaco-4);">
+          <label for="campoBuscaResultados" class="rotulo-oculto">Buscar</label>
+          <div class="campo">
+            <span class="icone">search</span>
+            <input type="text" id="campoBuscaResultados" placeholder="O que você precisa?">
+          </div>
+          <button type="submit" class="btn btn-primario">Buscar</button>
+        </form>
+
+        <div class="chips-categorias" id="chipsCategorias" aria-label="Categorias"></div>
+        <div class="filtro-oculto">
+          <label for="filtroCategoria">Categoria</label>
+          <select id="filtroCategoria"></select>
+        </div>
+      </div>
+    </section>
+
+    <section class="secao-app">
+      <div class="container">
+        <p class="aviso-mock"><span class="icone">info</span> Resultados de demonstração.</p>
+        <div class="grade-cards" id="resultadosBusca"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="nav-inferior" id="navInferior"></nav>
+
+  <script src="scripts/config.js"></script>
+  <script src="scripts/utilitarios.js"></script>
+  <script src="scripts/dados.js"></script>
+  <script src="scripts/navegacao.js"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>

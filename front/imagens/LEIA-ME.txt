@@ -1,0 +1,15 @@
+IMAGENS DO REPARAÊ
+==================
+Hoje o site usa gradientes + ícones como "foto" (nenhuma imagem é necessária).
+Para usar fotos reais, coloque os arquivos nesta pasta e:
+
+1) HERO (landing): em estilos/tokens.css, dentro de :root, adicione
+     --hero-imagem: url("../imagens/hero.jpg");
+
+2) CARDS de profissional: em scripts/dados.js, adicione ao profissional
+     foto: "imagens/carlos.jpg"
+
+3) GALERIA de trabalhos: em scripts/dados.js, adicione ao profissional
+     fotos: ["imagens/carlos-1.jpg", "imagens/carlos-2.jpg", ...]
+
+Se a foto não existir, o layout continua funcionando com o gradiente.

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minha conta — Reparaê</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet">
+
+  <link rel="stylesheet" href="estilos/tokens.css">
+  <link rel="stylesheet" href="estilos/base.css">
+  <link rel="stylesheet" href="estilos/componentes.css">
+  <link rel="stylesheet" href="estilos/app.css">
+</head>
+<body class="corpo-app" data-tipo-usuario="cliente" data-pagina="perfil">
+
+  <header class="topo-app" id="navTopo"></header>
+
+  <main>
+    <section class="cabecalho-pagina">
+      <div class="container">
+        <h1>Minha conta</h1>
+        <p>Seus dados.</p>
+      </div>
+    </section>
+
+    <section class="secao-app">
+      <div class="container formulario-largura">
+        <div class="cartao">
+          <div class="faixa-usuario">
+            <span class="avatar" id="contaAvatar"></span>
+            <div>
+              <strong id="contaNomeExibido"></strong>
+              <span class="sub">Cliente Reparaê</span>
+            </div>
+          </div>
+
+          <form id="formContaCliente">
+            <div class="grupo-campo">
+              <label for="contaClienteNome">Nome</label>
+              <div class="campo">
+                <span class="icone">person</span>
+                <input type="text" id="contaClienteNome" required>
+              </div>
+            </div>
+
+            <div class="linha-2-colunas">
+              <div class="grupo-campo">
+                <label for="contaClienteEmail">E-mail</label>
+                <div class="campo">
+                  <span class="icone">mail</span>
+                  <input type="email" id="contaClienteEmail" placeholder="seu@email.com">
+                </div>
+              </div>
+              <div class="grupo-campo">
+                <label for="contaClienteTelefone">Telefone</label>
+                <div class="campo">
+                  <span class="icone">call</span>
+                  <input type="tel" id="contaClienteTelefone" placeholder="Seu telefone">
+                </div>
+              </div>
+            </div>
+
+            <div class="grupo-campo">
+              <label for="contaClienteNovaSenha">Nova senha (opcional)</label>
+              <div class="campo">
+                <span class="icone">lock</span>
+                <input type="password" id="contaClienteNovaSenha" placeholder="Deixe em branco para manter a atual" minlength="8">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primario" style="align-self: flex-start;">Salvar alterações</button>
+            <p id="mensagemContaCliente" class="mensagem-formulario" role="status"></p>
+          </form>
+        </div>
+
+        <div class="cartao" style="margin-top: var(--espaco-5);">
+          <h2 style="font-size: var(--texto-lg); margin-bottom: var(--espaco-2);">Sair da conta</h2>
+          <a href="index.html" class="btn btn-secundario acao-perigo" style="border-color: #C62828; color: #C62828;"><span class="icone">logout</span> Sair</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="nav-inferior" id="navInferior"></nav>
+
+  <script src="scripts/config.js"></script>
+  <script src="scripts/utilitarios.js"></script>
+  <script src="scripts/dados.js"></script>
+  <script src="scripts/navegacao.js"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>

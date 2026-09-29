@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar conta — Reparaê</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet">
+
+  <link rel="stylesheet" href="estilos/tokens.css">
+  <link rel="stylesheet" href="estilos/base.css">
+  <link rel="stylesheet" href="estilos/componentes.css">
+  <link rel="stylesheet" href="estilos/auth.css">
+</head>
+<body class="pagina-auth">
+
+  <header class="auth-topo">
+    <div class="container">
+      <a href="index.html" class="marca">Repara<span>ê</span></a>
+    </div>
+  </header>
+
+  <main class="auth-conteudo">
+
+    <!-- ===================== ESCOLHA DO TIPO DE CONTA ===================== -->
+    <div id="telaEscolha" class="cartao cartao-elevado auth-cartao">
+      <h1>Como você quer usar o Reparaê?</h1>
+      <p class="subtitulo">Escolha o tipo de conta para começar.</p>
+
+      <div class="escolha-tipo">
+        <button type="button" class="escolha-tipo-opcao" id="escolherCliente">
+          <span class="icone">person</span>
+          <strong>Sou cliente</strong>
+          <span class="descricao">Quero encontrar um profissional</span>
+        </button>
+        <button type="button" class="escolha-tipo-opcao" id="escolherProfissional">
+          <span class="icone">construction</span>
+          <strong>Sou profissional</strong>
+          <span class="descricao">Quero oferecer meus serviços</span>
+        </button>
+      </div>
+
+      <p class="auth-rodape">Já tem uma conta? <a href="login.html">Entrar</a></p>
+    </div>
+
+    <!-- ===================== CADASTRO DE CLIENTE ===================== -->
+    <div id="telaCliente" class="cartao cartao-elevado auth-cartao" hidden>
+      <button type="button" class="btn-texto" data-voltar-escolha><span class="icone">arrow_back</span> Voltar</button>
+      <h1>Criar conta de cliente</h1>
+      <p class="subtitulo">Leva menos de um minuto.</p>
+
+      <form id="formCadastroCliente" novalidate>
+        <div class="campo">
+          <span class="icone">person</span>
+          <label for="clienteNome" class="rotulo-oculto">Nome</label>
+          <input type="text" id="clienteNome" name="nome" placeholder="Seu nome" autocomplete="name" required maxlength="60">
+        </div>
+        <span class="erro-campo" data-erro-de="clienteNome"></span>
+
+        <div class="campo">
+          <span class="icone">mail</span>
+          <label for="clienteEmail" class="rotulo-oculto">E-mail</label>
+          <input type="email" id="clienteEmail" name="email" placeholder="Seu e-mail" autocomplete="email" required>
+        </div>
+        <span class="erro-campo" data-erro-de="clienteEmail"></span>
+
+        <div class="campo">
+          <span class="icone">call</span>
+          <label for="clienteTelefone" class="rotulo-oculto">Telefone</label>
+          <input type="tel" id="clienteTelefone" name="telefone" placeholder="Seu telefone" autocomplete="tel" required>
+        </div>
+        <span class="erro-campo" data-erro-de="clienteTelefone"></span>
+
+        <div class="campo campo-com-acao">
+          <span class="icone">lock</span>
+          <label for="clienteSenha" class="rotulo-oculto">Senha</label>
+          <input type="password" id="clienteSenha" name="senha" placeholder="Crie uma senha" autocomplete="new-password" required minlength="8">
+          <button type="button" class="botao-visibilidade icone" data-alternar-senha="clienteSenha" aria-label="Mostrar senha">visibility</button>
+        </div>
+        <span class="erro-campo" data-erro-de="clienteSenha"></span>
+
+        <div class="campo campo-com-acao">
+          <span class="icone">lock</span>
+          <label for="clienteConfirmarSenha" class="rotulo-oculto">Confirmar senha</label>
+          <input type="password" id="clienteConfirmarSenha" name="confirmarSenha" placeholder="Confirme sua senha" autocomplete="new-password" required minlength="8">
+          <button type="button" class="botao-visibilidade icone" data-alternar-senha="clienteConfirmarSenha" aria-label="Mostrar senha">visibility</button>
+        </div>
+        <span class="erro-campo" data-erro-de="clienteConfirmarSenha"></span>
+
+        <label class="linha-checkbox">
+          <input type="checkbox" id="clienteTermos" required>
+          Li e aceito os <a href="#">termos de uso</a> e a <a href="#">política de privacidade</a>.
+        </label>
+        <span class="erro-campo" data-erro-de="clienteTermos"></span>
+
+        <button type="submit" class="btn btn-primario btn-bloco" id="botaoCriarContaCliente">Criar conta</button>
+        <p id="mensagemCadastroCliente" class="mensagem-formulario" role="status"></p>
+      </form>
+
+      <p class="auth-rodape">Já tem uma conta? <a href="login.html">Entrar</a></p>
+    </div>
+
+    <!-- ===================== CADASTRO DE PROFISSIONAL (ETAPAS) ===================== -->
+    <div id="telaProfissional" class="cartao cartao-elevado auth-cartao largo" hidden>
+      <button type="button" class="btn-texto" data-voltar-escolha><span class="icone">arrow_back</span> Voltar</button>
+
+      <div class="stepper" id="stepperProfissional">
+        <span class="stepper-item" data-etapa="1">Dados</span>
+        <span class="stepper-item" data-etapa="2">Categoria</span>
+        <span class="stepper-item" data-etapa="3">Serviços</span>
+        <span class="stepper-item" data-etapa="4">Área</span>
+        <span class="stepper-item" data-etapa="5">Revisão</span>
+      </div>
+
+      <!-- Etapa 1 — Dados pessoais -->
+      <section class="etapa-profissional" data-etapa-conteudo="1">
+        <h1>Dados pessoais</h1>
+        <p class="subtitulo">Vamos começar com suas informações básicas.</p>
+
+        <form id="formEtapa1">
+          <div class="campo">
+            <span class="icone">person</span>
+            <label for="profNome" class="rotulo-oculto">Nome</label>
+            <input type="text" id="profNome" placeholder="Seu nome" required maxlength="60">
+          </div>
+          <span class="erro-campo" data-erro-de="profNome"></span>
+
+          <div class="campo">
+            <span class="icone">call</span>
+            <label for="profTelefone" class="rotulo-oculto">Telefone</label>
+            <input type="tel" id="profTelefone" placeholder="Seu telefone" required>
+          </div>
+          <span class="erro-campo" data-erro-de="profTelefone"></span>
+
+          <div class="campo">
+            <span class="icone">mail</span>
+            <label for="profEmail" class="rotulo-oculto">E-mail</label>
+            <input type="email" id="profEmail" placeholder="Seu e-mail" required>
+          </div>
+          <span class="erro-campo" data-erro-de="profEmail"></span>
+
+          <div class="campo campo-com-acao">
+            <span class="icone">lock</span>
+            <label for="profSenha" class="rotulo-oculto">Senha</label>
+            <input type="password" id="profSenha" placeholder="Crie uma senha" required minlength="8">
+            <button type="button" class="botao-visibilidade icone" data-alternar-senha="profSenha" aria-label="Mostrar senha">visibility</button>
+          </div>
+          <span class="erro-campo" data-erro-de="profSenha"></span>
+
+          <div class="acoes-etapa">
+            <span></span>
+            <button type="submit" class="btn btn-primario">Continuar</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Etapa 2 — Categoria -->
+      <section class="etapa-profissional" data-etapa-conteudo="2" hidden>
+        <h1>Categoria profissional</h1>
+        <p class="subtitulo">Escolha a categoria principal do seu trabalho.</p>
+
+        <div class="grade-selecao-categoria" id="gradeCategorias"></div>
+
+        <div class="acoes-etapa">
+          <button type="button" class="btn btn-secundario" data-voltar-etapa="1">Voltar</button>
+          <button type="button" class="btn btn-primario" id="btnContinuarEtapa2" disabled>Continuar</button>
+        </div>
+      </section>
+
+      <!-- Etapa 3 — Serviços específicos -->
+      <section class="etapa-profissional" data-etapa-conteudo="3" hidden>
+        <h1>Serviços que você oferece</h1>
+        <p class="subtitulo">Selecione um ou mais serviços. Você pode ajustar isso depois.</p>
+
+        <div class="lista-servicos-selecao" id="listaServicos"></div>
+
+        <p class="subtitulo" style="margin-bottom: var(--espaco-2);">Selecionados:</p>
+        <div class="servicos-selecionados-resumo" id="resumoServicos"></div>
+        <span class="erro-campo" id="erroServicos"></span>
+
+        <div class="acoes-etapa">
+          <button type="button" class="btn btn-secundario" data-voltar-etapa="2">Voltar</button>
+          <button type="button" class="btn btn-primario" id="btnContinuarEtapa3">Continuar</button>
+        </div>
+      </section>
+
+      <!-- Etapa 4 — Área de atendimento -->
+      <section class="etapa-profissional" data-etapa-conteudo="4" hidden>
+        <h1>Área de atendimento</h1>
+        <p class="subtitulo">Quais bairros ou regiões você atende?</p>
+
+        <form id="formEtapa4">
+          <div class="campo" style="height: auto; padding: var(--espaco-3);">
+            <span class="icone">location_on</span>
+            <label for="profRegiao" class="rotulo-oculto">Região de atendimento</label>
+            <input type="text" id="profRegiao" placeholder="Ex: Aldeota, Meireles, Centro..." required>
+          </div>
+          <span class="erro-campo" data-erro-de="profRegiao"></span>
+
+          <div class="acoes-etapa">
+            <button type="button" class="btn btn-secundario" data-voltar-etapa="3">Voltar</button>
+            <button type="submit" class="btn btn-primario">Continuar</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Etapa 5 — Revisão -->
+      <section class="etapa-profissional" data-etapa-conteudo="5" hidden>
+        <h1>Revise suas informações</h1>
+        <p class="subtitulo">Confira antes de concluir o cadastro.</p>
+
+        <div id="listaRevisao"></div>
+
+        <div class="acoes-etapa" style="margin-top: var(--espaco-4);">
+          <button type="button" class="btn btn-secundario" data-voltar-etapa="4">Voltar</button>
+          <button type="button" class="btn btn-primario" id="botaoConcluirCadastro">Concluir cadastro</button>
+        </div>
+        <p id="mensagemCadastroProfissional" class="mensagem-formulario" role="status"></p>
+      </section>
+
+      <!-- Etapa 6 — Conclusão -->
+      <section class="etapa-profissional tela-conclusao" data-etapa-conteudo="6" hidden>
+        <span class="icone">check_circle</span>
+        <h1>Cadastro enviado!</h1>
+        <p class="subtitulo">Sua conta profissional foi criada. Você já pode acessar seu painel.</p>
+        <a href="dashboard-profissional.html" class="btn btn-primario">Ir para o painel</a>
+      </section>
+    </div>
+
+  </main>
+
+  <script src="scripts/config.js"></script>
+  <script src="scripts/utilitarios.js"></script>
+  <script src="scripts/dados.js"></script>
+  <script src="scripts/cadastro.js"></script>
+</body>
+</html>

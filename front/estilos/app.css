@@ -1,0 +1,797 @@
+@charset "UTF-8";
+
+/* ==========================================================================
+   APP — REPARAÊ
+   Estilos compartilhados por todas as páginas internas (logadas), tanto do
+   cliente quanto do profissional: topbar, navegação inferior mobile,
+   cards de profissional/solicitação, abas, estados vazios e dashboard.
+   Depende de tokens.css, base.css e componentes.css.
+   ========================================================================== */
+
+body.corpo-app {
+  background-color: var(--cinza-claro);
+  padding-bottom: 76px; /* espaço para a navegação inferior no mobile */
+}
+
+/* ---------------------------------------------------------------------- */
+/* Topbar (desktop)                                                        */
+/* ---------------------------------------------------------------------- */
+
+.topo-app {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: var(--branco);
+  border-bottom: 1px solid var(--borda-clara);
+}
+
+.topo-app-conteudo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+
+.topo-app-links {
+  display: flex;
+  gap: var(--espaco-5);
+}
+
+.topo-app-link {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--texto-secundario);
+}
+
+.topo-app-link .icone {
+  font-size: var(--texto-lg);
+}
+
+.topo-app-link.ativo,
+.topo-app-link:hover {
+  color: var(--azul-principal);
+}
+
+.topo-app-sair {
+  height: 40px;
+  padding: 0 var(--espaco-4);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Navegação inferior (mobile)                                            */
+/* ---------------------------------------------------------------------- */
+
+.nav-inferior {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background-color: var(--branco);
+  border-top: 1px solid var(--borda-clara);
+  padding: var(--espaco-2) 0;
+}
+
+.nav-inferior-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  font-size: var(--texto-xs);
+  color: var(--texto-secundario);
+}
+
+.nav-inferior-item .icone {
+  font-size: var(--texto-xl);
+}
+
+.nav-inferior-item.ativo {
+  color: var(--laranja-cta);
+}
+
+@media screen and (max-width: 767px) {
+  .topo-app-links {
+    display: none;
+  }
+
+  .topo-app-sair span {
+    display: none;
+  }
+
+  .nav-inferior {
+    display: flex;
+  }
+}
+
+.aviso-mock {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  font-size: var(--texto-xs);
+  color: var(--texto-secundario);
+  margin-bottom: var(--espaco-3);
+}
+
+.aviso-mock .icone {
+  font-size: var(--texto-sm);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Cabeçalho de página interna                                            */
+/* ---------------------------------------------------------------------- */
+
+.cabecalho-pagina {
+  position: relative;
+  overflow: hidden;
+  padding: var(--espaco-6) 0 var(--espaco-6);
+  background: var(--gradiente-marca);
+  color: var(--branco);
+}
+
+.cabecalho-pagina::after {
+  content: "";
+  position: absolute;
+  top: -80px;
+  right: -60px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 124, 0, 0.35) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.cabecalho-pagina .container {
+  position: relative;
+  z-index: 1;
+}
+
+.cabecalho-pagina h1 {
+  font-size: var(--texto-2xl);
+  color: var(--branco);
+}
+
+.cabecalho-pagina p {
+  margin-top: var(--espaco-1);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.cabecalho-pagina .btn-texto {
+  color: var(--branco);
+}
+
+.secao-app {
+  padding: var(--espaco-5) 0;
+}
+
+.secao-app-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--espaco-4);
+}
+
+.secao-app-titulo h2 {
+  font-size: var(--texto-lg);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Busca grande (home / busca)                                            */
+/* ---------------------------------------------------------------------- */
+
+.busca-grande {
+  display: flex;
+  gap: var(--espaco-2);
+  max-width: 720px;
+}
+
+.busca-grande .campo {
+  flex: 1;
+  height: 56px;
+  background-color: var(--branco);
+  box-shadow: var(--sombra-sm);
+}
+
+.busca-grande .btn {
+  height: 56px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Grades de card                                                         */
+/* ---------------------------------------------------------------------- */
+
+.grade-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--espaco-4);
+}
+
+.grade-categorias-app {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--espaco-3);
+}
+
+.grade-categorias-app .categoria-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-2);
+  text-align: center;
+  background-color: var(--branco);
+  border-radius: var(--raio-lg);
+  padding: var(--espaco-4) var(--espaco-2);
+  border: 1px solid var(--borda-clara);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.grade-categorias-app .categoria-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sombra-md);
+}
+
+.grade-categorias-app .categoria-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--grad-categoria, var(--gradiente-marca));
+  color: var(--branco);
+  font-size: 24px;
+}
+
+.grade-categorias-app .categoria-card span.nome {
+  font-weight: var(--peso-semibold);
+  font-size: var(--texto-xs);
+  color: var(--texto-principal);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Card de profissional                                                   */
+/* ---------------------------------------------------------------------- */
+
+.card-profissional {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+/* Cards de profissional agora herdam o banner visual (.cartao-midia +
+   .midia-banner, definidos em componentes.css) — o corpo abaixo fica
+   compacto e escaneável. */
+.card-profissional .midia-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.card-profissional-topo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--gradiente-marca);
+  color: var(--branco);
+  font-weight: var(--peso-bold);
+  flex-shrink: 0;
+}
+
+.card-profissional-nome strong {
+  display: block;
+  font-size: var(--texto-md);
+  color: var(--texto-principal);
+}
+
+.card-profissional-nome span {
+  font-size: var(--texto-xs);
+  color: var(--texto-secundario);
+}
+
+.card-profissional p.descricao {
+  font-size: var(--texto-sm);
+}
+
+.card-profissional-acoes {
+  display: flex;
+  gap: var(--espaco-2);
+  margin-top: var(--espaco-2);
+}
+
+.card-profissional-acoes .btn {
+  flex: 1;
+  height: 40px;
+  font-size: var(--texto-sm);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Abas (solicitações)                                                    */
+/* ---------------------------------------------------------------------- */
+
+.abas {
+  display: inline-flex;
+  gap: 4px;
+  background-color: var(--cinza-claro);
+  border-radius: var(--raio-pill);
+  padding: 4px;
+  margin-bottom: var(--espaco-4);
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.aba {
+  background: transparent;
+  border: 0;
+  border-radius: var(--raio-pill);
+  padding: var(--espaco-2) var(--espaco-4);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  color: var(--texto-secundario);
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.aba.ativa {
+  color: var(--azul-escuro);
+  background-color: var(--branco);
+  box-shadow: var(--sombra-sm);
+  font-weight: var(--peso-semibold);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Card de solicitação                                                    */
+/* ---------------------------------------------------------------------- */
+
+.card-solicitacao {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espaco-4);
+  margin-bottom: var(--espaco-3);
+  border-left: 4px solid var(--borda-clara);
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card-solicitacao:hover {
+  transform: translateX(2px);
+  box-shadow: var(--sombra-sm);
+}
+
+.card-solicitacao:has(.status-nova),
+.card-solicitacao:has(.status-andamento) { border-left-color: var(--azul-principal); }
+.card-solicitacao:has(.status-aceita) { border-left-color: var(--laranja-cta); }
+.card-solicitacao:has(.status-concluida),
+.card-solicitacao:has(.status-historico) { border-left-color: #1B7A3C; }
+.card-solicitacao:has(.status-cancelada) { border-left-color: #C62828; }
+
+.card-solicitacao h3 {
+  font-size: var(--texto-md);
+}
+
+.card-solicitacao p.pessoa {
+  font-size: var(--texto-sm);
+  color: var(--texto-secundario);
+  margin-top: 2px;
+}
+
+.card-solicitacao p.resumo {
+  font-size: var(--texto-sm);
+  margin-top: var(--espaco-2);
+}
+
+.card-solicitacao-meta {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.card-solicitacao-meta .data {
+  display: block;
+  font-size: var(--texto-xs);
+  color: var(--texto-secundario);
+  margin-bottom: var(--espaco-2);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: var(--espaco-1) var(--espaco-3);
+  border-radius: var(--raio-pill);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semibold);
+}
+
+.status-nova, .status-andamento { background-color: var(--azul-suave); color: var(--azul-escuro); }
+.status-aceita { background-color: var(--laranja-suave); color: var(--laranja-hover); }
+.status-concluida, .status-historico { background-color: #E3F5E8; color: #1B7A3C; }
+.status-cancelada { background-color: #FBE4E4; color: #C62828; }
+
+/* ---------------------------------------------------------------------- */
+/* Estado vazio                                                           */
+/* ---------------------------------------------------------------------- */
+
+.estado-vazio {
+  text-align: center;
+  padding: var(--espaco-8) var(--espaco-4);
+  color: var(--texto-secundario);
+}
+
+.estado-vazio .icone {
+  font-size: 48px;
+  color: var(--borda-clara);
+  margin-bottom: var(--espaco-3);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Dashboard do profissional                                              */
+/* ---------------------------------------------------------------------- */
+
+.resumo-dashboard {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--espaco-4);
+}
+
+.resumo-card {
+  text-align: center;
+  border: none;
+  background: var(--gradiente-marca);
+  box-shadow: var(--sombra-md);
+}
+
+.resumo-card .numero {
+  display: block;
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-bold);
+  color: var(--branco);
+}
+
+.resumo-card .rotulo {
+  font-size: var(--texto-sm);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Formulários de conta/perfil                                            */
+/* ---------------------------------------------------------------------- */
+
+.formulario-largura {
+  max-width: 560px;
+}
+
+.formulario-largura form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.linha-2-colunas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espaco-3);
+}
+
+.grupo-campo label {
+  display: block;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  margin-bottom: var(--espaco-1);
+}
+
+.acao-perigo {
+  color: #C62828;
+}
+
+/* Portfólio (placeholder visual, sem imagens externas) */
+.portfolio-grade {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--espaco-3);
+}
+
+.portfolio-item {
+  aspect-ratio: 1 / 1;
+  border-radius: var(--raio-md);
+  background: var(--grad-categoria, var(--gradiente-marca));
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+}
+
+.portfolio-item:hover {
+  transform: scale(1.04);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Responsivo                                                             */
+/* ---------------------------------------------------------------------- */
+
+@media screen and (max-width: 991px) {
+  .grade-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grade-categorias-app {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .resumo-dashboard {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .portfolio-grade {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media screen and (max-width: 599px) {
+  .grade-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .grade-categorias-app {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .linha-2-colunas {
+    grid-template-columns: 1fr;
+  }
+
+  .card-solicitacao {
+    flex-direction: column;
+  }
+
+  .card-solicitacao-meta {
+    text-align: left;
+  }
+
+  .portfolio-grade {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* ---------------------------------------------------------------------- */
+/* Chips de categoria (busca) e rolagem horizontal                        */
+/* ---------------------------------------------------------------------- */
+
+.chips-categorias {
+  display: flex;
+  gap: var(--espaco-2);
+  margin-top: var(--espaco-4);
+  overflow-x: auto;
+  padding-bottom: var(--espaco-1);
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.chips-categorias::-webkit-scrollbar { display: none; }
+
+.chips-categorias .chip {
+  flex-shrink: 0;
+  gap: var(--espaco-1);
+  scroll-snap-align: start;
+  background-color: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--branco);
+}
+
+.chips-categorias .chip .icone { font-size: 18px; }
+
+.chips-categorias .chip:hover {
+  background-color: rgba(255, 255, 255, 0.28);
+  color: var(--branco);
+}
+
+.chips-categorias .chip.ativo {
+  background-color: var(--branco);
+  color: var(--azul-escuro);
+  border-color: var(--branco);
+}
+
+.filtro-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Ações rápidas (dashboard do profissional)                              */
+/* ---------------------------------------------------------------------- */
+
+.acoes-rapidas {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--espaco-4);
+}
+
+.acao-rapida {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding: var(--espaco-5) var(--espaco-3);
+  text-align: center;
+  font-weight: var(--peso-semibold);
+  color: var(--texto-principal);
+  background-color: var(--branco);
+  border: 1px solid var(--borda-clara);
+  border-radius: var(--raio-xl);
+  box-shadow: var(--sombra-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.acao-rapida:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sombra-lg);
+}
+
+.acao-rapida .icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--gradiente-marca);
+  color: var(--branco);
+  font-size: 28px;
+}
+
+.acao-rapida.destaque .icone { background: var(--gradiente-cta); }
+
+.resumo-card .icone {
+  display: block;
+  margin-bottom: var(--espaco-1);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 26px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Avatar grande (conta) e faixa de perfil                                */
+/* ---------------------------------------------------------------------- */
+
+.faixa-usuario {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-4);
+  margin-bottom: var(--espaco-5);
+  padding-bottom: var(--espaco-4);
+  border-bottom: 1px solid var(--borda-clara);
+}
+
+.faixa-usuario .avatar {
+  width: 72px;
+  height: 72px;
+  font-size: var(--texto-xl);
+}
+
+.faixa-usuario strong {
+  display: block;
+  font-size: var(--texto-lg);
+  color: var(--texto-principal);
+}
+
+.faixa-usuario span.sub {
+  font-size: var(--texto-sm);
+  color: var(--texto-secundario);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Skeleton de carregamento                                               */
+/* ---------------------------------------------------------------------- */
+
+.skeleton {
+  border-radius: var(--raio-xl);
+  min-height: 300px;
+  background: linear-gradient(90deg, #EEF2F7 25%, #F7F9FC 50%, #EEF2F7 75%);
+  background-size: 200% 100%;
+  animation: skeleton-brilho 1.1s ease-in-out infinite;
+}
+
+@keyframes skeleton-brilho {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Entrada suave e slot para foto real                                    */
+/* ---------------------------------------------------------------------- */
+
+.grade-cards > *,
+.grade-categorias > *,
+.grade-categorias-app > * {
+  animation: entrada-suave 0.4s ease both;
+}
+
+@keyframes entrada-suave {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Foto real: defina p.foto (URL) no dado do profissional. O banner passa
+   a exibir a imagem e esconde o ícone placeholder. */
+.midia-banner.com-foto {
+  background-size: cover;
+  background-position: center;
+}
+
+.midia-banner.com-foto > .icone { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+@media screen and (max-width: 991px) {
+  .acoes-rapidas { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Categorias em carrossel horizontal no celular */
+@media screen and (max-width: 599px) {
+  .grade-categorias-app {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-auto-columns: 92px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding-bottom: var(--espaco-2);
+    scrollbar-width: none;
+  }
+  .grade-categorias-app::-webkit-scrollbar { display: none; }
+  .grade-categorias-app > * { scroll-snap-align: start; }
+}
+
+.perfil-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-4);
+}
+
+.perfil-stats > div {
+  text-align: center;
+  padding: var(--espaco-3) var(--espaco-2);
+  background-color: var(--azul-suave);
+  border-radius: var(--raio-md);
+}
+
+.perfil-stats strong {
+  display: block;
+  font-size: var(--texto-xl);
+  color: var(--azul-escuro);
+}
+
+.perfil-stats span {
+  font-size: var(--texto-xs);
+  color: var(--texto-secundario);
+}
+
+/* Robustez: nenhum ícone (ligatura) pode alargar o layout enquanto a fonte carrega */
+.resumo-card { min-width: 0; overflow: hidden; }
+.resumo-card .icone { width: 1em; height: 1em; margin-left: auto; margin-right: auto; overflow: hidden; }
+
+/* Busca no mobile: o campo encolhe e o botão nunca é cortado */
+.busca-grande { align-items: stretch; }
+.busca-grande .campo { min-width: 0; }
+.busca-grande .campo input { min-width: 0; width: 100%; }
+.busca-grande .btn { flex-shrink: 0; height: 56px; }
+
+@media screen and (max-width: 599px) {
+  .busca-grande .btn { padding: 0 var(--espaco-4); }
+}

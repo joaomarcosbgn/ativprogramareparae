@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meus serviços — Reparaê</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet">
+
+  <link rel="stylesheet" href="estilos/tokens.css">
+  <link rel="stylesheet" href="estilos/base.css">
+  <link rel="stylesheet" href="estilos/componentes.css">
+  <link rel="stylesheet" href="estilos/app.css">
+  <!-- Reaproveita os estilos de seleção de serviço já criados para o cadastro -->
+  <link rel="stylesheet" href="estilos/auth.css">
+</head>
+<body class="corpo-app" data-tipo-usuario="profissional" data-pagina="servicos">
+
+  <header class="topo-app" id="navTopo"></header>
+
+  <main>
+    <section class="cabecalho-pagina">
+      <div class="container">
+        <h1>Meus serviços</h1>
+        <p>Escolha o que você faz.</p>
+      </div>
+    </section>
+
+    <section class="secao-app">
+      <div class="container formulario-largura">
+        <div class="cartao">
+          <h2 style="font-size: var(--texto-lg); margin-bottom: var(--espaco-3);">Serviços atuais</h2>
+          <p class="aviso-mock"><span class="icone">info</span> Demonstração: alterações não são salvas.</p>
+          <div id="listaServicosAtuais" style="display:flex; flex-wrap:wrap; gap: var(--espaco-2);"></div>
+        </div>
+
+        <div class="cartao" style="margin-top: var(--espaco-5);">
+          <h2 style="font-size: var(--texto-lg); margin-bottom: var(--espaco-3);">Adicionar serviço</h2>
+
+          <div class="grupo-campo">
+            <label for="seletorCategoriaServico">Categoria</label>
+            <div class="campo">
+              <span class="icone">category</span>
+              <select id="seletorCategoriaServico"></select>
+            </div>
+          </div>
+
+          <div class="lista-servicos-selecao" id="listaServicosDisponiveis" style="margin-top: var(--espaco-3);"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="nav-inferior" id="navInferior"></nav>
+
+  <script src="scripts/config.js"></script>
+  <script src="scripts/utilitarios.js"></script>
+  <script src="scripts/dados.js"></script>
+  <script src="scripts/navegacao.js"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>

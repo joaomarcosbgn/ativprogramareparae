@@ -1,0 +1,531 @@
+@charset "UTF-8";
+
+/* ==========================================================================
+   LANDING PAGE — REPARAÊ
+   Estilos exclusivos da página inicial pública (index.html).
+   Depende de tokens.css, base.css e componentes.css.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------- */
+/* Menu mobile (gaveta simples)                                           */
+/* ---------------------------------------------------------------------- */
+
+.menu-mobile {
+  display: none;
+  position: fixed;
+  inset: 72px 0 0 0;
+  background-color: var(--branco);
+  z-index: 40;
+  padding: var(--espaco-5);
+  border-top: 1px solid var(--borda-clara);
+}
+
+.menu-mobile.aberto {
+  display: block;
+}
+
+.menu-mobile ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-medio);
+}
+
+.menu-mobile .nav-acoes {
+  margin-top: var(--espaco-6);
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Hero                                                                    */
+/* ---------------------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  background: var(--gradiente-marca);
+  padding: var(--espaco-9) 0 var(--espaco-8);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Composição visual decorativa — substitui uma foto de banco de imagens
+   por um "colagem" de ícones de serviço em círculos translúcidos.
+   Estrutura pronta para trocar por uma imagem real (basta aplicar
+   background-image a .hero::before e remover .hero-icones). */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(245, 124, 0, 0.35) 0%, transparent 42%),
+    radial-gradient(circle at 65% 75%, rgba(255, 255, 255, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 15% 85%, rgba(255, 255, 255, 0.08) 0%, transparent 40%);
+  z-index: -1;
+}
+
+.hero-icones {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.hero-icones span {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.hero-icones span:nth-child(1) { width: 92px; height: 92px; font-size: 40px; top: 8%;  right: 32%; }
+.hero-icones span:nth-child(2) { width: 64px; height: 64px; font-size: 28px; top: 62%; right: 6%;  }
+.hero-icones span:nth-child(3) { width: 120px; height: 120px; font-size: 48px; top: 58%; right: 40%; }
+.hero-icones span:nth-child(4) { width: 56px; height: 56px; font-size: 24px; top: 14%; right: 4%;  }
+.hero-icones span:nth-child(5) { width: 72px; height: 72px; font-size: 30px; top: 78%; right: 22%; }
+
+.hero .container {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: var(--espaco-8);
+  align-items: center;
+}
+
+.hero-titulo {
+  font-size: var(--texto-3xl);
+  color: var(--branco);
+}
+
+.hero-titulo .destaque {
+  color: #FFC069;
+}
+
+.hero-descricao {
+  margin-top: var(--espaco-3);
+  font-size: var(--texto-lg);
+  max-width: 46ch;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+/* Barra de busca do hero */
+.hero-busca {
+  margin-top: var(--espaco-6);
+  display: flex;
+  gap: var(--espaco-2);
+}
+
+.hero-busca .campo {
+  flex: 1;
+  height: 56px;
+  background-color: var(--branco);
+  border-color: transparent;
+  box-shadow: var(--sombra-lg);
+}
+
+.hero-busca .btn {
+  height: 56px;
+  padding: 0 var(--espaco-6);
+}
+
+.hero-sugestoes {
+  margin-top: var(--espaco-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  align-items: center;
+}
+
+.hero-sugestoes span {
+  font-size: var(--texto-sm);
+  color: rgba(255, 255, 255, 0.75);
+  margin-right: var(--espaco-1);
+}
+
+.hero-sugestoes .chip {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: var(--branco);
+}
+
+.hero-sugestoes .chip:hover {
+  background-color: var(--branco);
+  color: var(--azul-escuro);
+}
+
+/* Cartão de login embutido no hero */
+.hero-login {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-login-cartao {
+  width: 100%;
+  max-width: 380px;
+  margin-left: auto;
+  box-shadow: var(--sombra-lg);
+}
+
+.hero-login-cartao h2 {
+  font-size: var(--texto-xl);
+  color: var(--azul-escuro);
+}
+
+.hero-login-cartao > p {
+  margin-top: var(--espaco-1);
+  font-size: var(--texto-sm);
+  margin-bottom: var(--espaco-4);
+}
+
+.hero-login-cartao form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.hero-login-rodape {
+  margin-top: var(--espaco-4);
+  text-align: center;
+  font-size: var(--texto-sm);
+  color: var(--texto-secundario);
+}
+
+.hero-login-rodape a {
+  font-weight: var(--peso-semibold);
+}
+
+.mensagem-formulario {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  min-height: 1.2em;
+}
+
+.mensagem-formulario.sucesso {
+  color: #1B7A3C;
+}
+
+.mensagem-formulario.erro {
+  color: #C62828;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Seção genérica                                                          */
+/* ---------------------------------------------------------------------- */
+
+.secao {
+  padding: var(--espaco-8) 0;
+}
+
+.secao-cabecalho {
+  max-width: 60ch;
+  margin-bottom: var(--espaco-6);
+}
+
+.secao-cabecalho h2 {
+  font-size: var(--texto-2xl);
+  color: var(--azul-escuro);
+}
+
+.secao-cabecalho p {
+  margin-top: var(--espaco-2);
+  font-size: var(--texto-lg);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Como funciona                                                          */
+/* ---------------------------------------------------------------------- */
+
+.passos {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--espaco-5);
+}
+
+.passo {
+  position: relative;
+  padding-top: var(--espaco-4);
+}
+
+.passo-numero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--gradiente-marca);
+  color: var(--branco);
+  font-weight: var(--peso-bold);
+  margin-bottom: var(--espaco-3);
+  box-shadow: var(--sombra-sm);
+}
+
+.passo h3 {
+  font-size: var(--texto-md);
+  margin-bottom: var(--espaco-1);
+}
+
+.passo p {
+  font-size: var(--texto-sm);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Categorias                                                              */
+/* ---------------------------------------------------------------------- */
+
+.categorias {
+  background-color: var(--cinza-claro);
+}
+
+.grade-categorias {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--espaco-4);
+}
+
+.categoria-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-2);
+  text-align: center;
+  background-color: var(--branco);
+  border-radius: var(--raio-lg);
+  padding: var(--espaco-5) var(--espaco-3);
+  border: 1px solid var(--borda-clara);
+  box-shadow: var(--sombra-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.categoria-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--sombra-lg);
+}
+
+.categoria-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--grad-categoria, var(--gradiente-marca));
+  color: var(--branco);
+  font-size: 30px;
+  flex-shrink: 0;
+}
+
+.categoria-card span.nome {
+  font-weight: var(--peso-semibold);
+  font-size: var(--texto-sm);
+  color: var(--texto-principal);
+  line-height: 1.25;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Avaliações                                                              */
+/* ---------------------------------------------------------------------- */
+
+.grade-avaliacoes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--espaco-5);
+}
+
+.avaliacao-card p.depoimento {
+  color: var(--texto-principal);
+  font-size: var(--texto-sm);
+  margin: var(--espaco-3) 0 var(--espaco-4);
+}
+
+.avaliacao-autor {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+}
+
+.avaliacao-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--azul-escuro);
+  color: var(--branco);
+  font-weight: var(--peso-bold);
+  font-size: var(--texto-sm);
+  flex-shrink: 0;
+}
+
+.avaliacao-autor .info strong {
+  display: block;
+  font-size: var(--texto-sm);
+}
+
+.avaliacao-autor .info span {
+  font-size: var(--texto-xs);
+  color: var(--texto-secundario);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Faixa institucional — Seja um profissional                             */
+/* ---------------------------------------------------------------------- */
+
+.faixa-profissional {
+  background: var(--gradiente-marca);
+  color: var(--branco);
+  position: relative;
+  overflow: hidden;
+}
+
+.faixa-profissional::before {
+  content: "";
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245,124,0,0.35) 0%, transparent 70%);
+}
+
+.faixa-profissional .container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-6);
+}
+
+.faixa-profissional h2 {
+  color: var(--branco);
+  font-size: var(--texto-2xl);
+  max-width: 26ch;
+}
+
+.faixa-profissional p {
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: var(--espaco-2);
+  max-width: 46ch;
+}
+
+.faixa-profissional .btn-primario {
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Responsivo — landing                                                   */
+/* ---------------------------------------------------------------------- */
+
+@media screen and (max-width: 991px) {
+  .hero .container {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-icones {
+    opacity: 0.5;
+  }
+
+  .hero-login-cartao {
+    margin: 0 auto;
+  }
+
+  .passos {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grade-categorias {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .grade-avaliacoes {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .faixa-profissional .container {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media screen and (max-width: 599px) {
+  .hero {
+    padding: var(--espaco-7) 0 var(--espaco-6);
+  }
+
+  .hero-icones {
+    display: none;
+  }
+
+  .hero-titulo {
+    font-size: var(--texto-2xl);
+  }
+
+  .hero-busca {
+    flex-direction: column;
+  }
+
+  .hero-busca .btn {
+    width: 100%;
+  }
+
+  .passos {
+    grid-template-columns: 1fr;
+  }
+
+  .grade-categorias {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .grade-avaliacoes {
+    grid-template-columns: 1fr;
+  }
+
+  .secao {
+    padding: var(--espaco-7) 0;
+  }
+}
+
+
+/* Categorias em carrossel horizontal no celular */
+@media screen and (max-width: 599px) {
+  .grade-categorias {
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-auto-columns: 104px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding-bottom: var(--espaco-2);
+    scrollbar-width: none;
+  }
+  .grade-categorias::-webkit-scrollbar { display: none; }
+  .grade-categorias > * { scroll-snap-align: start; }
+}
+
+/* Foto real do hero: defina --hero-imagem em :root, ex.
+   --hero-imagem: url("../imagens/hero.jpg"); (ver imagens/LEIA-ME.txt) */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--hero-imagem, none);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.28;
+  mix-blend-mode: luminosity;
+}
+
+.hero-busca .campo { min-width: 0; }
+.hero-busca .campo input { min-width: 0; width: 100%; }
+.hero-busca .btn { flex-shrink: 0; }
+
+@media screen and (max-width: 599px) {
+  .hero-busca .btn { padding: 0 var(--espaco-4); }
+}

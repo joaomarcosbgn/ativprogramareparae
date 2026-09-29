@@ -1,0 +1,357 @@
+@charset "UTF-8";
+
+/* ==========================================================================
+   AUTENTICAÇÃO — REPARAÊ
+   Estilos exclusivos de login.html, cadastro.html e esqueci-senha.html.
+   Depende de tokens.css, base.css e componentes.css.
+   ========================================================================== */
+
+.pagina-auth {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 85% 12%, rgba(245, 124, 0, 0.35) 0%, transparent 40%),
+    var(--gradiente-marca);
+  background-attachment: fixed;
+}
+
+.pagina-auth .marca { color: var(--branco); }
+.pagina-auth .marca span { color: #FFC069; }
+
+.pagina-auth .auth-cartao { border-radius: var(--raio-xl); box-shadow: var(--sombra-lg); }
+
+.auth-topo {
+  padding: var(--espaco-5) 0;
+}
+
+.auth-topo .marca {
+  font-size: var(--texto-xl);
+}
+
+.auth-conteudo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espaco-5) var(--espaco-4) var(--espaco-8);
+}
+
+.auth-cartao {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-cartao h1 {
+  font-size: var(--texto-xl);
+  color: var(--azul-escuro);
+}
+
+.auth-cartao > p.subtitulo {
+  margin-top: var(--espaco-1);
+  font-size: var(--texto-sm);
+  margin-bottom: var(--espaco-5);
+}
+
+.auth-cartao form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.campo-com-acao {
+  position: relative;
+}
+
+.campo-com-acao input {
+  padding-right: var(--espaco-6);
+}
+
+.botao-visibilidade {
+  position: absolute;
+  right: var(--espaco-3);
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 0;
+  color: var(--texto-secundario);
+}
+
+.linha-auxiliar {
+  display: flex;
+  justify-content: flex-end;
+  font-size: var(--texto-sm);
+}
+
+.linha-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-2);
+  font-size: var(--texto-sm);
+  color: var(--texto-secundario);
+}
+
+.linha-checkbox input {
+  margin-top: 3px;
+}
+
+.erro-campo {
+  font-size: var(--texto-xs);
+  color: #C62828;
+  min-height: 1.1em;
+}
+
+.auth-rodape {
+  margin-top: var(--espaco-4);
+  text-align: center;
+  font-size: var(--texto-sm);
+  color: var(--texto-secundario);
+}
+
+.auth-rodape a {
+  font-weight: var(--peso-semibold);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Escolha do tipo de conta                                               */
+/* ---------------------------------------------------------------------- */
+
+.escolha-tipo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espaco-3);
+}
+
+.escolha-tipo-opcao {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-2);
+  text-align: center;
+  padding: var(--espaco-6) var(--espaco-3);
+  border: 2px solid var(--borda-clara);
+  border-radius: var(--raio-lg);
+  background-color: var(--branco);
+  color: var(--texto-principal);
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.escolha-tipo-opcao:hover {
+  border-color: transparent;
+  transform: translateY(-3px);
+  box-shadow: var(--sombra-md);
+}
+
+.escolha-tipo-opcao .icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--gradiente-marca);
+  color: var(--branco);
+  font-size: 30px;
+}
+
+.escolha-tipo-opcao strong {
+  font-size: var(--texto-md);
+}
+
+.escolha-tipo-opcao span.descricao {
+  font-size: var(--texto-xs);
+  color: var(--texto-secundario);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Indicador de progresso (cadastro de profissional)                      */
+/* ---------------------------------------------------------------------- */
+
+.auth-cartao.largo {
+  max-width: 640px;
+}
+
+.stepper {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--espaco-5);
+}
+
+.stepper-item {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  font-size: var(--texto-xs);
+  color: var(--texto-secundario);
+}
+
+.stepper-item::before {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 28px;
+  margin: 0 auto var(--espaco-1);
+  border-radius: 50%;
+  background-color: var(--borda-clara);
+  color: var(--branco);
+}
+
+.stepper-item.concluida::before {
+  background-color: var(--azul-principal);
+}
+
+.stepper-item.ativa::before {
+  background-color: var(--laranja-cta);
+}
+
+.stepper-item.ativa {
+  color: var(--texto-principal);
+  font-weight: var(--peso-semibold);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Seleção de categoria e serviços                                        */
+/* ---------------------------------------------------------------------- */
+
+.grade-selecao-categoria {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--espaco-3);
+  margin-bottom: var(--espaco-4);
+}
+
+.categoria-selecionavel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espaco-2);
+  padding: var(--espaco-4) var(--espaco-2);
+  border: 2px solid transparent;
+  border-radius: var(--raio-md);
+  background-color: var(--cinza-claro);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-medio);
+  text-align: center;
+  transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.categoria-selecionavel:hover {
+  transform: translateY(-2px);
+}
+
+.categoria-selecionavel .icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--grad-categoria, var(--gradiente-marca));
+  color: var(--branco);
+  font-size: 22px;
+}
+
+.categoria-selecionavel.selecionada {
+  border-color: var(--laranja-cta);
+  background-color: var(--laranja-suave);
+}
+
+.lista-servicos-selecao {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-4);
+}
+
+.servico-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  padding: var(--espaco-2) var(--espaco-3);
+  border: 1px solid var(--borda-clara);
+  border-radius: var(--raio-pill);
+  font-size: var(--texto-sm);
+  background-color: var(--branco);
+}
+
+.servico-checkbox.selecionado {
+  border-color: var(--laranja-cta);
+  background-color: var(--laranja-suave);
+}
+
+.servicos-selecionados-resumo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-4);
+}
+
+.chip-removivel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-1);
+  padding: var(--espaco-1) var(--espaco-3);
+  border-radius: var(--raio-pill);
+  background-color: var(--azul-suave);
+  color: var(--azul-escuro);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-semibold);
+  border: 1px solid rgba(25, 118, 210, 0.18);
+}
+
+.chip-removivel button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-size: 0.9em;
+  line-height: 1;
+}
+
+.acoes-etapa {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-2);
+}
+
+.revisao-item {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  padding: var(--espaco-2) 0;
+  border-bottom: 1px solid var(--borda-clara);
+  font-size: var(--texto-sm);
+}
+
+.revisao-item span.rotulo {
+  color: var(--texto-secundario);
+}
+
+.tela-conclusao {
+  text-align: center;
+  padding: var(--espaco-5) 0;
+}
+
+.tela-conclusao .icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  margin: 0 auto var(--espaco-4);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2E9D5C, #1B7A3C);
+  color: var(--branco);
+  font-size: 48px;
+  box-shadow: var(--sombra-md);
+}
+
+@media screen and (max-width: 599px) {
+  .escolha-tipo {
+    grid-template-columns: 1fr;
+  }
+
+  .grade-selecao-categoria {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

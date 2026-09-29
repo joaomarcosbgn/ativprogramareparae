@@ -1,0 +1,98 @@
+@charset "UTF-8";
+
+/* ==========================================================================
+   TOKENS DE DESIGN — REPARAÊ
+   Única fonte de verdade para cores, tipografia, espaçamento, raios e
+   sombras. Todas as outras folhas de estilo devem usar estas variáveis
+   em vez de valores soltos.
+   ========================================================================== */
+
+:root {
+  /* ---- Cores de marca (definidas no CLAUDE.md, não alterar) ---- */
+  --azul-principal: #1976D2;
+  --azul-escuro: #0D47A1;
+  --laranja-cta: #F57C00;
+  --branco: #FFFFFF;
+  --cinza-claro: #F5F7FA;
+
+  /* ---- Variações derivadas (hierarquia visual, mesma identidade) ---- */
+  --azul-suave: #E3F0FC;   /* fundo leve para blocos ligados ao azul */
+  --laranja-suave: #FFEFDC; /* fundo leve para blocos ligados ao laranja */
+  --laranja-hover: #D96C00; /* hover do botão de ação principal */
+  --azul-hover: #145FA8;    /* hover de botões/links secundários */
+
+  /* ---- Neutros complementares (texto e bordas, não descaracterizam a marca) ---- */
+  --texto-principal: #1A2333;
+  --texto-secundario: #5B6472;
+  --borda-clara: #E2E7EF;
+
+  /* ---- Tipografia ---- */
+  --fonte-base: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --texto-xs: 0.8rem;    /* 12.8px */
+  --texto-sm: 0.9rem;    /* 14.4px */
+  --texto-md: 1rem;      /* 16px */
+  --texto-lg: 1.15rem;   /* 18.4px */
+  --texto-xl: 1.5rem;    /* 24px */
+  --texto-2xl: 2rem;     /* 32px */
+  --texto-3xl: 2.75rem;  /* 44px */
+
+  --peso-regular: 400;
+  --peso-medio: 500;
+  --peso-semibold: 600;
+  --peso-bold: 700;
+
+  /* ---- Espaçamento (escala de 4px) ---- */
+  --espaco-1: 4px;
+  --espaco-2: 8px;
+  --espaco-3: 12px;
+  --espaco-4: 16px;
+  --espaco-5: 24px;
+  --espaco-6: 32px;
+  --espaco-7: 48px;
+  --espaco-8: 64px;
+  --espaco-9: 96px;
+
+  /* ---- Raios de borda ---- */
+  --raio-sm: 8px;
+  --raio-md: 14px;
+  --raio-lg: 24px;
+  --raio-pill: 999px;
+
+  /* ---- Sombras ---- */
+  --sombra-sm: 0 2px 8px rgba(13, 71, 161, 0.08);
+  --sombra-md: 0 12px 32px rgba(13, 71, 161, 0.12);
+  --sombra-lg: 0 24px 56px rgba(13, 71, 161, 0.18);
+  --sombra-laranja: 0 10px 24px rgba(245, 124, 0, 0.28);
+
+  /* ---- Raio extra para cards com mídia ---- */
+  --raio-xl: 28px;
+
+  /* ---- Gradientes de marca ---- */
+  --gradiente-marca: linear-gradient(135deg, var(--azul-escuro) 0%, var(--azul-principal) 55%, #3C9DFF 100%);
+  --gradiente-cta: linear-gradient(135deg, var(--laranja-cta) 0%, #FF9A3D 100%);
+  --overlay-escuro: linear-gradient(180deg, rgba(13,71,161,0) 0%, rgba(8,25,58,0.78) 100%);
+
+  /* ---- Largura máxima de conteúdo ---- */
+  --largura-conteudo: 1180px;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Paleta de "foto" por categoria — usada como fundo do banner dos cards  */
+/* de categoria e de profissional enquanto não há fotos reais. Cada      */
+/* elemento com [data-categoria] herda um gradiente próprio e coerente   */
+/* com a marca (variações de azul/laranja + tons de apoio).              */
+/* ---------------------------------------------------------------------- */
+
+[data-categoria="casa"]        { --grad-categoria: linear-gradient(135deg,#1E88E5,#0D47A1); }
+[data-categoria="automotivo"]  { --grad-categoria: linear-gradient(135deg,#37474F,#102027); }
+[data-categoria="tecnologia"]  { --grad-categoria: linear-gradient(135deg,#00897B,#004D40); }
+[data-categoria="educacao"]    { --grad-categoria: linear-gradient(135deg,#5E35B1,#311B92); }
+[data-categoria="foto"]        { --grad-categoria: linear-gradient(135deg,#F57C00,#BF360C); }
+[data-categoria="design"]      { --grad-categoria: linear-gradient(135deg,#D81B60,#880E4F); }
+[data-categoria="beleza"]      { --grad-categoria: linear-gradient(135deg,#EC407A,#AD1457); }
+[data-categoria="eventos"]     { --grad-categoria: linear-gradient(135deg,#FB8C00,#E65100); }
+[data-categoria="pets"]        { --grad-categoria: linear-gradient(135deg,#43A047,#1B5E20); }
+[data-categoria="transporte"]  { --grad-categoria: linear-gradient(135deg,#1565C0,#0D47A1); }
+[data-categoria="esporte"]     { --grad-categoria: linear-gradient(135deg,#00ACC1,#00695C); }
+[data-categoria="empresas"]    { --grad-categoria: linear-gradient(135deg,#3949AB,#1A237E); }

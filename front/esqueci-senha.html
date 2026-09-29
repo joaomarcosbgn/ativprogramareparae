@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esqueci minha senha — Reparaê</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet">
+
+  <link rel="stylesheet" href="estilos/tokens.css">
+  <link rel="stylesheet" href="estilos/base.css">
+  <link rel="stylesheet" href="estilos/componentes.css">
+  <link rel="stylesheet" href="estilos/auth.css">
+</head>
+<body class="pagina-auth">
+
+  <header class="auth-topo">
+    <div class="container">
+      <a href="index.html" class="marca">Repara<span>ê</span></a>
+    </div>
+  </header>
+
+  <main class="auth-conteudo">
+    <div class="cartao cartao-elevado auth-cartao">
+      <h1>Esqueci minha senha</h1>
+      <p class="subtitulo">Informe o e-mail da sua conta. Enviaremos as instruções para redefinir sua senha.</p>
+
+      <form id="formEsqueciSenha" novalidate>
+        <div class="campo">
+          <span class="icone">mail</span>
+          <label for="emailRecuperacao" class="rotulo-oculto">E-mail</label>
+          <input type="email" id="emailRecuperacao" name="email" placeholder="Seu e-mail" autocomplete="email" required>
+        </div>
+
+        <button type="submit" class="btn btn-primario btn-bloco">Enviar instruções</button>
+        <p id="mensagemEsqueciSenha" class="mensagem-formulario" role="status"></p>
+      </form>
+
+      <p class="auth-rodape">
+        Lembrou a senha? <a href="login.html">Voltar para o login</a>
+      </p>
+    </div>
+  </main>
+
+  <script src="scripts/config.js"></script>
+  <script src="scripts/utilitarios.js"></script>
+  <script src="scripts/login.js"></script>
+</body>
+</html>

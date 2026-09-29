@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solicitações — Reparaê</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet">
+
+  <link rel="stylesheet" href="estilos/tokens.css">
+  <link rel="stylesheet" href="estilos/base.css">
+  <link rel="stylesheet" href="estilos/componentes.css">
+  <link rel="stylesheet" href="estilos/app.css">
+</head>
+<body class="corpo-app" data-tipo-usuario="profissional" data-pagina="solicitacoes">
+
+  <header class="topo-app" id="navTopo"></header>
+
+  <main>
+    <section class="cabecalho-pagina">
+      <div class="container">
+        <h1>Solicitações</h1>
+        <p>Gerencie os pedidos recebidos de clientes.</p>
+      </div>
+    </section>
+
+    <section class="secao-app">
+      <div class="container">
+        <p class="aviso-mock"><span class="icone">info</span> Dados de demonstração.</p>
+
+        <div class="abas" id="abasSolicitacoesProfissional">
+          <button type="button" class="aba ativa" data-status="nova">Novas</button>
+          <button type="button" class="aba" data-status="aceita">Aceitas</button>
+          <button type="button" class="aba" data-status="andamento">Em andamento</button>
+          <button type="button" class="aba" data-status="historico">Histórico</button>
+        </div>
+
+        <div id="listaSolicitacoesProfissional"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="nav-inferior" id="navInferior"></nav>
+
+  <script src="scripts/config.js"></script>
+  <script src="scripts/utilitarios.js"></script>
+  <script src="scripts/dados.js"></script>
+  <script src="scripts/navegacao.js"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>

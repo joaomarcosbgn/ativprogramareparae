@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Início — Reparaê</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet">
+
+  <link rel="stylesheet" href="estilos/tokens.css">
+  <link rel="stylesheet" href="estilos/base.css">
+  <link rel="stylesheet" href="estilos/componentes.css">
+  <link rel="stylesheet" href="estilos/app.css">
+</head>
+<body class="corpo-app" data-tipo-usuario="cliente" data-pagina="inicio">
+
+  <header class="topo-app" id="navTopo"></header>
+
+  <main>
+    <section class="cabecalho-pagina">
+      <div class="container">
+        <h1>Olá, <span id="saudacaoNome">--</span> 👋</h1>
+        <p>O que você precisa hoje?</p>
+
+        <form id="formBuscaApp" class="busca-grande" style="margin-top: var(--espaco-4);">
+          <label for="campoBuscaApp" class="rotulo-oculto">Buscar serviço</label>
+          <div class="campo">
+            <span class="icone">search</span>
+            <input type="text" id="campoBuscaApp" placeholder="Preciso de um encanador, fotógrafo, professor...">
+          </div>
+          <button type="submit" class="btn btn-primario">Buscar</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="secao-app">
+      <div class="container">
+        <div class="secao-app-titulo"><h2>Escolha uma categoria</h2></div>
+        <div class="grade-categorias-app" id="gradeCategoriasApp"></div>
+      </div>
+    </section>
+
+    <section class="secao-app">
+      <div class="container">
+        <div class="secao-app-titulo">
+          <h2>Profissionais perto de você</h2>
+          <a href="busca.html" class="btn-texto">Ver todos</a>
+        </div>
+        <p class="aviso-mock"><span class="icone">info</span> Dados de demonstração.</p>
+        <div class="grade-cards" id="gradeProfissionaisRecomendados"></div>
+      </div>
+    </section>
+
+    <section class="secao-app">
+      <div class="container">
+        <div class="secao-app-titulo">
+          <h2>Suas solicitações</h2>
+          <a href="solicitacoes-cliente.html" class="btn-texto">Ver todas</a>
+        </div>
+        <div id="listaSolicitacoesHome"></div>
+      </div>
+    </section>
+
+    <section class="secao-app">
+      <div class="container">
+        <div class="secao-app-titulo"><h2>Avaliações recentes</h2></div>
+        <p class="aviso-mock"><span class="icone">info</span> Dados de demonstração.</p>
+        <div class="grade-cards" id="gradeAvaliacoesApp"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="nav-inferior" id="navInferior"></nav>
+
+  <script src="scripts/config.js"></script>
+  <script src="scripts/utilitarios.js"></script>
+  <script src="scripts/dados.js"></script>
+  <script src="scripts/navegacao.js"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>

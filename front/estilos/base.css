@@ -1,0 +1,95 @@
+@charset "UTF-8";
+
+/* ==========================================================================
+   ESTILOS BASE — REPARAÊ
+   Reset e estilos globais compartilhados por todas as páginas do site.
+   Depende de tokens.css (deve ser carregado antes deste arquivo).
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--fonte-base);
+  font-size: var(--texto-md);
+  color: var(--texto-principal);
+  background-color: var(--branco);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.2;
+  font-weight: var(--peso-bold);
+  color: var(--texto-principal);
+}
+
+p {
+  color: var(--texto-secundario);
+}
+
+a {
+  color: var(--azul-principal);
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+img, svg {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  font-size: var(--texto-md);
+}
+
+/* Foco visível para acessibilidade de teclado */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--azul-principal);
+  outline-offset: 2px;
+}
+
+/* Contêiner central usado em todas as seções da página */
+.container {
+  width: 100%;
+  max-width: var(--largura-conteudo);
+  margin: 0 auto;
+  padding: 0 var(--espaco-5);
+}
+
+/* Ícones Material Symbols: garante peso/tamanho consistente onde forem usados */
+.icone {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  display: inline-block;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media screen and (max-width: 767px) {
+  .container {
+    padding: 0 var(--espaco-4);
+  }
+}

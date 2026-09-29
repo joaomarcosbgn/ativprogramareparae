@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do profissional — Reparaê</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet">
+
+  <link rel="stylesheet" href="estilos/tokens.css">
+  <link rel="stylesheet" href="estilos/base.css">
+  <link rel="stylesheet" href="estilos/componentes.css">
+  <link rel="stylesheet" href="estilos/app.css">
+</head>
+<body class="corpo-app" data-tipo-usuario="profissional" data-pagina="inicio">
+
+  <header class="topo-app" id="navTopo"></header>
+
+  <main>
+    <section class="cabecalho-pagina">
+      <div class="container">
+        <h1>Olá, <span id="saudacaoProfissional">--</span> 👋</h1>
+        <p>Seu resumo de hoje.</p>
+      </div>
+    </section>
+
+    <section class="secao-app">
+      <div class="container">
+        <p class="aviso-mock"><span class="icone">info</span> Dados de demonstração.</p>
+        <div class="resumo-dashboard">
+          <div class="cartao resumo-card">
+            <span class="icone">notifications_active</span>
+            <span class="numero" id="resumoNovas">0</span>
+            <span class="rotulo">Novas solicitações</span>
+          </div>
+          <div class="cartao resumo-card">
+            <span class="icone">thumb_up</span>
+            <span class="numero" id="resumoAceitas">0</span>
+            <span class="rotulo">Aceitas</span>
+          </div>
+          <div class="cartao resumo-card">
+            <span class="icone">build</span>
+            <span class="numero" id="resumoAndamento">0</span>
+            <span class="rotulo">Em andamento</span>
+          </div>
+          <div class="cartao resumo-card">
+            <span class="icone">task_alt</span>
+            <span class="numero" id="resumoConcluidas">0</span>
+            <span class="rotulo">Concluídas</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="secao-app">
+      <div class="container">
+        <div class="secao-app-titulo"><h2>Ações rápidas</h2></div>
+        <div class="acoes-rapidas">
+          <a class="acao-rapida destaque" href="solicitacoes-profissional.html"><span class="icone">assignment</span>Solicitações</a>
+          <a class="acao-rapida" href="servicos-profissional.html"><span class="icone">handyman</span>Meus serviços</a>
+          <a class="acao-rapida" href="perfil-profissional-editar.html"><span class="icone">badge</span>Editar perfil</a>
+          <a class="acao-rapida" href="perfil-profissional.html"><span class="icone">photo_library</span>Meus trabalhos</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="secao-app">
+      <div class="container">
+        <div class="secao-app-titulo">
+          <h2>Solicitações recentes</h2>
+          <a href="solicitacoes-profissional.html" class="btn-texto">Ver todas</a>
+        </div>
+        <div id="listaSolicitacoesRecentes"></div>
+      </div>
+    </section>
+
+    <section class="secao-app">
+      <div class="container">
+        <div class="secao-app-titulo">
+          <h2>Meus serviços</h2>
+          <a href="servicos-profissional.html" class="btn-texto">Gerenciar</a>
+        </div>
+        <div id="listaMeusServicosResumo" style="display:flex; flex-wrap:wrap; gap: var(--espaco-2);"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="nav-inferior" id="navInferior"></nav>
+
+  <script src="scripts/config.js"></script>
+  <script src="scripts/utilitarios.js"></script>
+  <script src="scripts/dados.js"></script>
+  <script src="scripts/navegacao.js"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>

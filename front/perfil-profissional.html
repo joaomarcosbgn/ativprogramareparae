@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil do profissional — Reparaê</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet">
+
+  <link rel="stylesheet" href="estilos/tokens.css">
+  <link rel="stylesheet" href="estilos/base.css">
+  <link rel="stylesheet" href="estilos/componentes.css">
+  <link rel="stylesheet" href="estilos/app.css">
+</head>
+<body class="corpo-app" data-tipo-usuario="cliente" data-pagina="buscar">
+
+  <header class="topo-app" id="navTopo"></header>
+
+  <main>
+    <section class="cabecalho-pagina">
+      <div class="container">
+        <a href="busca.html" class="btn-texto"><span class="icone">arrow_back</span> Voltar para a busca</a>
+      </div>
+    </section>
+
+    <section class="secao-app" id="perfilProfissionalConteudo">
+      <div class="container">
+        <div class="cartao-midia" style="max-width: 760px;">
+          <div class="midia-banner" id="perfilCapa" style="height:120px;">
+            <span class="icone" id="perfilIconeCapa"></span>
+          </div>
+          <div class="midia-corpo">
+            <div class="card-profissional-topo" style="margin-top:-56px; margin-bottom: var(--espaco-4);">
+              <span class="avatar" id="perfilAvatar" style="width:72px;height:72px;font-size:var(--texto-xl); border:4px solid var(--branco);"></span>
+              <div class="card-profissional-nome">
+                <strong id="perfilNome" style="font-size: var(--texto-xl);"></strong>
+                <span id="perfilServico"></span>
+              </div>
+            </div>
+
+            <div class="perfil-stats" id="perfilStats"></div>
+            <div class="badge-avaliacao" id="perfilAvaliacao" style="margin-bottom: var(--espaco-3);"></div>
+            <p class="descricao" id="perfilExperiencia" hidden></p>
+            <p id="perfilDescricao"></p>
+
+            <button type="button" class="btn btn-primario btn-bloco" id="botaoSolicitarPerfil" style="margin-top: var(--espaco-5);">Solicitar serviço</button>
+          </div>
+        </div>
+
+        <div class="cartao" id="secaoPortfolio" hidden style="max-width: 760px; margin-top: var(--espaco-5);">
+          <h2 style="font-size: var(--texto-lg); margin-bottom: var(--espaco-3);">Trabalhos realizados</h2>
+          <div class="portfolio-grade" id="portfolioGrade"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="secao-app">
+      <div class="container">
+        <div class="secao-app-titulo"><h2>Avaliações de clientes</h2></div>
+        <p class="aviso-mock"><span class="icone">info</span> Dados de demonstração.</p>
+        <div class="grade-cards" id="gradeAvaliacoesPerfil"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="nav-inferior" id="navInferior"></nav>
+
+  <script src="scripts/config.js"></script>
+  <script src="scripts/utilitarios.js"></script>
+  <script src="scripts/dados.js"></script>
+  <script src="scripts/navegacao.js"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>

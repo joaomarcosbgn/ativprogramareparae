@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reparaê — Precisou? Reparaê.</title>
+  <meta name="description" content="Reparaê é o delivery de serviços: encontre encanador, eletricista, fotógrafo, professor particular e outros profissionais em um só lugar.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet">
+
+  <link rel="stylesheet" href="estilos/tokens.css">
+  <link rel="stylesheet" href="estilos/base.css">
+  <link rel="stylesheet" href="estilos/componentes.css">
+  <link rel="stylesheet" href="estilos/landing.css">
+</head>
+<body>
+
+  <!-- ===================== CABEÇALHO ===================== -->
+  <header class="cabecalho">
+    <div class="container">
+      <a href="index.html" class="marca">Repara<span>ê</span></a>
+
+      <nav class="nav-principal">
+        <ul class="nav-links">
+          <li><a href="#como-funciona">Como funciona</a></li>
+          <li><a href="#categorias">Categorias</a></li>
+          <li><a href="#avaliacoes">Avaliações</a></li>
+          <li><a href="#seja-profissional">Para profissionais</a></li>
+        </ul>
+
+        <div class="nav-acoes">
+          <a href="cadastro.html" class="btn btn-secundario">Cadastre-se</a>
+          <a href="#login" class="btn btn-primario">Entrar</a>
+        </div>
+      </nav>
+
+      <button id="botaoMenuMobile" class="botao-menu-mobile icone" aria-label="Abrir menu" aria-expanded="false">menu</button>
+    </div>
+
+    <div id="menuMobile" class="menu-mobile">
+      <ul>
+        <li><a href="#como-funciona">Como funciona</a></li>
+        <li><a href="#categorias">Categorias</a></li>
+        <li><a href="#avaliacoes">Avaliações</a></li>
+        <li><a href="#seja-profissional">Para profissionais</a></li>
+      </ul>
+      <div class="nav-acoes">
+        <a href="cadastro.html" class="btn btn-secundario btn-bloco">Cadastre-se</a>
+        <a href="#login" class="btn btn-primario btn-bloco">Entrar</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ===================== HERO ===================== -->
+    <section class="hero">
+      <div class="hero-icones" aria-hidden="true">
+        <span class="icone">plumbing</span>
+        <span class="icone">photo_camera</span>
+        <span class="icone">construction</span>
+        <span class="icone">directions_car</span>
+        <span class="icone">content_cut</span>
+      </div>
+      <div class="container">
+
+        <div class="hero-conteudo">
+          <h1 class="hero-titulo">Precisou? <span class="destaque">Reparaê.</span></h1>
+          <p class="hero-descricao">
+            Encontre quem resolve — de encanador a fotógrafo, tudo em um só lugar.
+          </p>
+
+          <form id="formBuscaHero" class="hero-busca">
+            <label for="campoBuscaHero" class="rotulo-oculto">O que você precisa resolver hoje?</label>
+            <div class="campo">
+              <span class="icone">search</span>
+              <input type="text" id="campoBuscaHero" name="busca" placeholder="Preciso de um encanador, fotógrafo, professor...">
+            </div>
+            <button type="submit" class="btn btn-primario">Buscar</button>
+          </form>
+
+          <div class="hero-sugestoes">
+            <span>Buscas comuns:</span>
+            <button type="button" class="chip" data-sugestao="Eletricista">Eletricista</button>
+            <button type="button" class="chip" data-sugestao="Fotógrafo para eventos">Fotógrafo</button>
+            <button type="button" class="chip" data-sugestao="Professor particular">Professor</button>
+            <button type="button" class="chip" data-sugestao="Mecânico">Mecânico</button>
+            <button type="button" class="chip" data-sugestao="Designer">Designer</button>
+          </div>
+        </div>
+
+        <div id="login" class="hero-login">
+          <div class="cartao cartao-elevado hero-login-cartao">
+            <h2>Já tem conta?</h2>
+            <p>Entre para acompanhar suas solicitações.</p>
+
+            <form id="formLoginHero" autocomplete="on">
+              <div class="campo">
+                <span class="icone">mail</span>
+                <label for="loginHeroEmail" class="rotulo-oculto">E-mail</label>
+                <input type="email" id="loginHeroEmail" name="email" placeholder="Seu e-mail" autocomplete="email" required>
+              </div>
+
+              <div class="campo">
+                <span class="icone">lock</span>
+                <label for="loginHeroSenha" class="rotulo-oculto">Senha</label>
+                <input type="password" id="loginHeroSenha" name="senha" placeholder="Sua senha" autocomplete="current-password" required minlength="6">
+              </div>
+
+              <button type="submit" class="btn btn-primario btn-bloco">Entrar</button>
+              <p id="mensagemLoginHero" class="mensagem-formulario" role="status"></p>
+            </form>
+
+            <p class="hero-login-rodape">
+              Não tem uma conta? <a href="cadastro.html">Cadastre-se</a>
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===================== COMO FUNCIONA ===================== -->
+    <section id="como-funciona" class="secao">
+      <div class="container">
+        <div class="secao-cabecalho">
+          <h2>Como funciona</h2>
+          <p>Poucos passos até o problema resolvido.</p>
+        </div>
+
+        <div class="passos">
+          <div class="passo">
+            <span class="passo-numero">1</span>
+            <h3>Diga o que precisa</h3>
+            <p>Descreva o serviço com suas palavras — o Reparaê entende o que você procura.</p>
+          </div>
+          <div class="passo">
+            <span class="passo-numero">2</span>
+            <h3>Escolha o profissional</h3>
+            <p>Compare avaliações, descrições e localização antes de decidir.</p>
+          </div>
+          <div class="passo">
+            <span class="passo-numero">3</span>
+            <h3>Combine os detalhes</h3>
+            <p>Entre em contato direto com o profissional escolhido.</p>
+          </div>
+          <div class="passo">
+            <span class="passo-numero">4</span>
+            <h3>Problema resolvido</h3>
+            <p>Depois de resolvido, avalie e ajude outras pessoas a decidir.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CATEGORIAS ===================== -->
+    <section id="categorias" class="secao categorias">
+      <div class="container">
+        <div class="secao-cabecalho">
+          <h2>O que você precisa hoje?</h2>
+          <p>Escolha uma categoria e encontre quem resolve.</p>
+        </div>
+
+        <div class="grade-categorias">
+          <a class="categoria-card" data-categoria="casa" href="cadastro.html">
+            <span class="categoria-icone icone">plumbing</span>
+            <span class="nome">Casa</span>
+          </a>
+          <a class="categoria-card" data-categoria="automotivo" href="cadastro.html">
+            <span class="categoria-icone icone">directions_car</span>
+            <span class="nome">Automotivo</span>
+          </a>
+          <a class="categoria-card" data-categoria="tecnologia" href="cadastro.html">
+            <span class="categoria-icone icone">computer</span>
+            <span class="nome">Tecnologia</span>
+          </a>
+          <a class="categoria-card" data-categoria="educacao" href="cadastro.html">
+            <span class="categoria-icone icone">school</span>
+            <span class="nome">Educação</span>
+          </a>
+          <a class="categoria-card" data-categoria="foto" href="cadastro.html">
+            <span class="categoria-icone icone">photo_camera</span>
+            <span class="nome">Fotografia</span>
+          </a>
+          <a class="categoria-card" data-categoria="design" href="cadastro.html">
+            <span class="categoria-icone icone">palette</span>
+            <span class="nome">Design</span>
+          </a>
+          <a class="categoria-card" data-categoria="beleza" href="cadastro.html">
+            <span class="categoria-icone icone">content_cut</span>
+            <span class="nome">Beleza</span>
+          </a>
+          <a class="categoria-card" data-categoria="pets" href="cadastro.html">
+            <span class="categoria-icone icone">pets</span>
+            <span class="nome">Pets</span>
+          </a>
+          <a class="categoria-card" data-categoria="eventos" href="cadastro.html">
+            <span class="categoria-icone icone">celebration</span>
+            <span class="nome">Eventos</span>
+          </a>
+          <a class="categoria-card" data-categoria="transporte" href="cadastro.html">
+            <span class="categoria-icone icone">local_shipping</span>
+            <span class="nome">Transporte</span>
+          </a>
+          <a class="categoria-card" data-categoria="esporte" href="cadastro.html">
+            <span class="categoria-icone icone">fitness_center</span>
+            <span class="nome">Bem-estar</span>
+          </a>
+          <a class="categoria-card" data-categoria="empresas" href="cadastro.html">
+            <span class="categoria-icone icone">business_center</span>
+            <span class="nome">Empresas</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== AVALIAÇÕES ===================== -->
+    <section id="avaliacoes" class="secao">
+      <div class="container">
+        <div class="secao-cabecalho">
+          <h2>Quem já resolveu por aqui</h2>
+          <p>Avaliações reais de clientes e profissionais.</p>
+        </div>
+
+        <div id="gradeAvaliacoes" class="grade-avaliacoes">
+          <!-- Preenchido via scripts/landing.js (dados de protótipo, prontos para API) -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SEJA UM PROFISSIONAL ===================== -->
+    <section id="seja-profissional" class="faixa-profissional">
+      <div class="container">
+        <div>
+          <h2>Divulgue seu trabalho no Reparaê</h2>
+          <p>Cadastre-se e receba pedidos de clientes perto de você.</p>
+        </div>
+        <a href="cadastro.html" class="btn btn-primario">Quero ser profissional</a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================== RODAPÉ ===================== -->
+  <footer class="rodape">
+    <div class="container">
+      <div class="rodape-grade">
+        <div class="rodape-coluna">
+          <h4>Reparaê</h4>
+          <p>O delivery de serviços que conecta pessoas a profissionais para qualquer tipo de necessidade.</p>
+        </div>
+        <div class="rodape-coluna">
+          <h4>Para clientes</h4>
+          <ul>
+            <li><a href="#como-funciona">Como funciona</a></li>
+            <li><a href="#categorias">Categorias</a></li>
+            <li><a href="cadastro.html">Criar conta</a></li>
+          </ul>
+        </div>
+        <div class="rodape-coluna">
+          <h4>Para profissionais</h4>
+          <ul>
+            <li><a href="#seja-profissional">Seja um profissional</a></li>
+            <li><a href="cadastro.html">Cadastrar serviços</a></li>
+          </ul>
+        </div>
+        <div class="rodape-coluna">
+          <h4>Institucional</h4>
+          <ul>
+            <li><a href="#">Termos de uso</a></li>
+            <li><a href="#">Privacidade</a></li>
+            <li><a href="#">Perguntas frequentes</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="rodape-base">
+        <span>© 2026 Reparaê. Todos os direitos reservados.</span>
+        <span>Feito no Brasil.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="scripts/config.js"></script>
+  <script src="scripts/utilitarios.js"></script>
+  <script src="scripts/landing.js"></script>
+</body>
+</html>

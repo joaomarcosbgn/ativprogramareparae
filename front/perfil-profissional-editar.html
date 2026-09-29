@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar perfil profissional — Reparaê</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet">
+
+  <link rel="stylesheet" href="estilos/tokens.css">
+  <link rel="stylesheet" href="estilos/base.css">
+  <link rel="stylesheet" href="estilos/componentes.css">
+  <link rel="stylesheet" href="estilos/app.css">
+</head>
+<body class="corpo-app" data-tipo-usuario="profissional" data-pagina="perfil">
+
+  <header class="topo-app" id="navTopo"></header>
+
+  <main>
+    <section class="cabecalho-pagina">
+      <div class="container">
+        <h1>Editar perfil profissional</h1>
+        <p>Como os clientes veem você.</p>
+      </div>
+    </section>
+
+    <section class="secao-app">
+      <div class="container formulario-largura">
+        <div class="cartao">
+          <form id="formPerfilProfissionalEditar">
+            <div class="grupo-campo">
+              <label for="editarNome">Nome</label>
+              <div class="campo">
+                <span class="icone">person</span>
+                <input type="text" id="editarNome" required>
+              </div>
+            </div>
+
+            <div class="grupo-campo">
+              <label for="editarDescricao">Descrição</label>
+              <textarea id="editarDescricao" rows="4" style="width:100%; border:2px solid var(--borda-clara); border-radius: var(--raio-sm); padding: var(--espaco-3); background-color: var(--cinza-claro); font-family: inherit;"></textarea>
+            </div>
+
+            <div class="linha-2-colunas">
+              <div class="grupo-campo">
+                <label for="editarExperiencia">Experiência</label>
+                <div class="campo">
+                  <span class="icone">work</span>
+                  <input type="text" id="editarExperiencia" placeholder="Ex: 5 anos de experiência">
+                </div>
+              </div>
+              <div class="grupo-campo">
+                <label for="editarRegiao">Área de atendimento</label>
+                <div class="campo">
+                  <span class="icone">location_on</span>
+                  <input type="text" id="editarRegiao" placeholder="Bairros ou região">
+                </div>
+              </div>
+            </div>
+
+            <div class="grupo-campo">
+              <label>Portfólio</label>
+              <div class="portfolio-grade">
+                <div class="portfolio-item"><span class="icone">add_a_photo</span></div>
+                <div class="portfolio-item"><span class="icone">add_a_photo</span></div>
+                <div class="portfolio-item"><span class="icone">add_a_photo</span></div>
+              </div>
+              <p style="font-size: var(--texto-xs); color: var(--texto-secundario);">Envio de fotos em breve.</p>
+            </div>
+
+            <button type="submit" class="btn btn-primario" style="align-self: flex-start;">Salvar alterações</button>
+            <p id="mensagemPerfilProfissionalEditar" class="mensagem-formulario" role="status"></p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="nav-inferior" id="navInferior"></nav>
+
+  <script src="scripts/config.js"></script>
+  <script src="scripts/utilitarios.js"></script>
+  <script src="scripts/dados.js"></script>
+  <script src="scripts/navegacao.js"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>
