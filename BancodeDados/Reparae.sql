@@ -1,41 +1,23 @@
+Reparae.sql — Banco de dados Reparaê
+
 PRAGMA foreign_keys = ON;
 BEGIN TRANSACTION;
--- ============================================================
--- REPARAÊ
--- Banco de dados inicial
---
--- Tipos de usuário:
---   cliente
---   profissional
---   admin
---
--- O banco começa sem usuários cadastrados.
--- Os usuários serão criados pela API, que ficará responsável
--- por gerar o hash bcrypt das senhas.
--- ============================================================
--- ============================================================
+-- =====================================================
 -- 1. USUÁRIOS
--- ============================================================
+-- Clientes, profissionais e administradores
+-- =====================================================
 CREATE TABLE usuarios (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     senha TEXT NOT NULL,
     tipo TEXT NOT NULL
-        CHECK (
-            tipo IN (
-                'cliente',
-                'profissional',
-                'admin'
-            )
-        )
+        CHECK (tipo IN ('cliente', 'profissional', 'admin'))
 );
--- ============================================================
+-- =====================================================
 -- 2. PROFISSIONAIS
---
--- Um usuário do tipo profissional poderá possuir um único
--- cadastro profissional.
--- ============================================================
+-- Dados complementares de usuários profissionais
+-- =====================================================
 CREATE TABLE profissionais (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     usuario_id INTEGER NOT NULL UNIQUE,
@@ -45,25 +27,37 @@ CREATE TABLE profissionais (
         CHECK (disponivel IN (0, 1)),
     FOREIGN KEY (usuario_id)
         REFERENCES usuarios(id)
-        ON DELETE RESTRICT
         ON UPDATE CASCADE
+        ON DELETE RESTRICT
 );
--- ============================================================
--- 3. SERVIÇOS
---
--- O preço representa um preço inicial/base.
--- O valor final pode depender do serviço solicitado.
--- ============================================================
+-- =====================================================
+-- 3. CATEGORIAS
+-- Agrupam os tipos de serviços oferecidos
+-- =====================================================
+CREATE TABLE categorias (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL UNIQUE,
+    descricao TEXT
+);
+-- =====================================================
+-- 4. SERVIÇOS
+-- Cada serviço pertence a uma categoria
+-- =====================================================
 CREATE TABLE servicos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    categoria_id INTEGER NOT NULL,
     nome TEXT NOT NULL,
     descricao TEXT,
-    preco REAL NOT NULL
-        CHECK (preco >= 0)
+    preco REAL NOT NULL CHECK (preco >= 0),
+    FOREIGN KEY (categoria_id)
+        REFERENCES categorias(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
 );
--- ============================================================
--- 4. SOLICITAÇÕES
--- ============================================================
+-- =====================================================
+-- 5. SOLICITAÇÕES
+-- Relacionam cliente, profissional e serviço
+-- =====================================================
 CREATE TABLE solicitacoes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     usuario_id INTEGER NOT NULL,
@@ -82,47 +76,57 @@ CREATE TABLE solicitacoes (
     data TEXT NOT NULL,
     FOREIGN KEY (usuario_id)
         REFERENCES usuarios(id)
-        ON DELETE RESTRICT
-        ON UPDATE CASCADE,
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
     FOREIGN KEY (profissional_id)
         REFERENCES profissionais(id)
-        ON DELETE RESTRICT
-        ON UPDATE CASCADE,
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
     FOREIGN KEY (servico_id)
         REFERENCES servicos(id)
-        ON DELETE RESTRICT
         ON UPDATE CASCADE
+        ON DELETE RESTRICT
 );
--- ============================================================
--- 5. SERVIÇOS INICIAIS
---
--- Estes são os serviços-base do Reparaê.
--- Novos serviços poderão ser adicionados posteriormente
--- pelo administrador.
--- ============================================================
+-- =====================================================
+-- 6. CATEGORIAS INICIAIS
+-- =====================================================
+INSERT INTO categorias (nome, descricao)
+VALUES
+    ('Elétrica', 'Instalações e reparos elétricos residenciais.'),
+    ('Pintura', 'Pintura e acabamento de ambientes.'),
+    ('Alvenaria', 'Reformas, construções e reparos em alvenaria.');
+-- =====================================================
+-- 7. SERVIÇOS INICIAIS
+-- Preços são valores iniciais de referência.
+-- =====================================================
 INSERT INTO servicos
-    (nome, descricao, preco)
+    (categoria_id, nome, descricao, preco)
 VALUES
     (
-        'Eletricista',
+        1,
+        'Serviço de Eletricista',
         'Instalações, reparos e manutenção elétrica residencial.',
         100.00
     ),
     (
-        'Pintor',
-        'Pintura, preparação e acabamento de ambientes residenciais.',
+        2,
+        'Serviço de Pintor',
+        'Pintura, preparação e acabamento de paredes.',
         150.00
     ),
     (
-        'Pedreiro',
+        3,
+        'Serviço de Pedreiro',
         'Pequenos reparos, reformas e serviços de alvenaria.',
         200.00
     );
--- ============================================================
--- 6. ÍNDICES
--- ============================================================
+-- =====================================================
+-- 8. ÍNDICES
+-- =====================================================
 CREATE INDEX idx_profissionais_usuario
     ON profissionais(usuario_id);
+CREATE INDEX idx_servicos_categoria
+    ON servicos(categoria_id);
 CREATE INDEX idx_solicitacoes_usuario
     ON solicitacoes(usuario_id);
 CREATE INDEX idx_solicitacoes_profissional
