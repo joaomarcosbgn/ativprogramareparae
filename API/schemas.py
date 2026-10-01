@@ -1,4 +1,3 @@
-```python
 from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
 from typing import Literal
 import re
@@ -208,4 +207,4 @@ class ProfissionalOut(ProfissionalBase):
         from_attributes=True,
         str_strip_whitespace=True,
     )
-```
+
