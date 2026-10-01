@@ -63,3 +63,64 @@ class LoginRequest(BaseModel):
 
     email: EmailStr
     senha: str = Field(..., min_length=8, max_length=72)
+
+# ---------- CATEGORIAS ----------
+
+class CategoriaBase(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    nome: str = Field(..., min_length=2, max_length=100)
+    descricao: str | None = Field(None, max_length=255)
+
+
+class CategoriaCreate(CategoriaBase):
+    pass
+
+
+class CategoriaUpdate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    nome: str | None = Field(None, min_length=2, max_length=100)
+    descricao: str | None = Field(None, max_length=255)
+
+
+class CategoriaOut(CategoriaBase):
+    id: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        str_strip_whitespace=True
+    )
+
+
+# ---------- SERVIÇOS ----------
+
+class ServicoBase(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    categoria_id: int
+    nome: str = Field(..., min_length=2, max_length=100)
+    descricao: str | None = Field(None, max_length=255)
+    preco: float = Field(..., ge=0)
+
+
+class ServicoCreate(ServicoBase):
+    pass
+
+
+class ServicoUpdate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    categoria_id: int | None = None
+    nome: str | None = Field(None, min_length=2, max_length=100)
+    descricao: str | None = Field(None, max_length=255)
+    preco: float | None = Field(None, ge=0)
+
+
+class ServicoOut(ServicoBase):
+    id: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        str_strip_whitespace=True
+    )
