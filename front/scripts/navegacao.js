@@ -27,6 +27,21 @@ const LINKS_NAV_PROFISSIONAL = [
  * @param {string} paginaAtiva - chave da página atual (ex: "inicio")
  */
 function renderizarNavegacao(tipoUsuario, paginaAtiva) {
+  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+
+  if (!usuarioLogado) {
+    window.location.href = "login.html";
+    return;
+  }
+    if (usuarioLogado.tipo !== tipoUsuario) {
+    if (usuarioLogado.tipo === "profissional") {
+      window.location.href = "dashboard-profissional.html";
+    } else {
+      window.location.href = "home-cliente.html";
+    }
+    return;
+  }
+
   const links = tipoUsuario === "profissional" ? LINKS_NAV_PROFISSIONAL : LINKS_NAV_CLIENTE;
   const topo = document.getElementById("navTopo");
   const inferior = document.getElementById("navInferior");
@@ -41,12 +56,12 @@ function renderizarNavegacao(tipoUsuario, paginaAtiva) {
             return `<a href="${link.href}" class="topo-app-link${ativo}"><span class="icone">${link.icone}</span>${link.label}</a>`;
           }).join("")}
         </nav>
-        <a href="index.html" class="btn btn-secundario topo-app-sair"><span class="icone">logout</span>Sair</a>
+        <a href="#" class="btn btn-secundario topo-app-sair" id="botaoSair"><span class="icone">logout</span>Sair</a>
       </div>
     `;
   }
 
-  if (inferior) {
+    if (inferior) {
     inferior.innerHTML = links.map(function (link) {
       const ativo = link.chave === paginaAtiva ? " ativo" : "";
       return `
@@ -57,4 +72,19 @@ function renderizarNavegacao(tipoUsuario, paginaAtiva) {
       `;
     }).join("");
   }
+
+  configurarLogout();
+}
+function configurarLogout() {
+  const botaoSair = document.getElementById("botaoSair");
+
+  if (!botaoSair) return;
+
+  botaoSair.addEventListener("click", function (evento) {
+    evento.preventDefault();
+
+    localStorage.removeItem("usuarioLogado");
+
+    window.location.href = "index.html";
+  });
 }
