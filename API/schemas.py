@@ -1,3 +1,4 @@
+```python
 from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
 from typing import Literal
 import re
@@ -17,7 +18,9 @@ class UsuarioBase(BaseModel):
         padrao = r"^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'-]*$"
 
         if not re.fullmatch(padrao, valor):
-            raise ValueError("O nome deve conter apenas letras e caracteres válidos.")
+            raise ValueError(
+                "O nome deve conter apenas letras e caracteres válidos."
+            )
 
         return " ".join(valor.split())
 
@@ -43,7 +46,9 @@ class UsuarioUpdate(BaseModel):
         padrao = r"^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'-]*$"
 
         if not re.fullmatch(padrao, valor):
-            raise ValueError("O nome deve conter apenas letras e caracteres válidos.")
+            raise ValueError(
+                "O nome deve conter apenas letras e caracteres válidos."
+            )
 
         return " ".join(valor.split())
 
@@ -63,6 +68,7 @@ class LoginRequest(BaseModel):
 
     email: EmailStr
     senha: str = Field(..., min_length=8, max_length=72)
+
 
 # ---------- CATEGORIAS ----------
 
@@ -124,3 +130,82 @@ class ServicoOut(ServicoBase):
         from_attributes=True,
         str_strip_whitespace=True
     )
+
+
+# ---------- PROFISSIONAIS ----------
+
+class ProfissionalBase(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    usuario_id: int
+    especialidade: str = Field(..., min_length=2, max_length=100)
+    telefone: str = Field(..., min_length=11, max_length=11)
+    disponivel: int = Field(default=1, ge=0, le=1)
+
+    @field_validator("telefone")
+    @classmethod
+    def validar_telefone(cls, valor: str) -> str:
+        if not valor.isdigit():
+            raise ValueError(
+                "O telefone deve conter apenas números."
+            )
+
+        if len(valor) != 11:
+            raise ValueError(
+                "O telefone deve conter exatamente 11 dígitos."
+            )
+
+        return valor
+
+
+class ProfissionalCreate(ProfissionalBase):
+    pass
+
+
+class ProfissionalUpdate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    usuario_id: int | None = None
+    especialidade: str | None = Field(
+        None,
+        min_length=2,
+        max_length=100
+    )
+    telefone: str | None = Field(
+        None,
+        min_length=11,
+        max_length=11
+    )
+    disponivel: int | None = Field(
+        None,
+        ge=0,
+        le=1
+    )
+
+    @field_validator("telefone")
+    @classmethod
+    def validar_telefone(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+
+        if not valor.isdigit():
+            raise ValueError(
+                "O telefone deve conter apenas números."
+            )
+
+        if len(valor) != 11:
+            raise ValueError(
+                "O telefone deve conter exatamente 11 dígitos."
+            )
+
+        return valor
+
+
+class ProfissionalOut(ProfissionalBase):
+    id: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        str_strip_whitespace=True,
+    )
+```
