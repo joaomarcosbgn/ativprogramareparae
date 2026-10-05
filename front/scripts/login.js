@@ -65,7 +65,9 @@ function configurarFormularioLogin() {
       });
 
       if (resposta.ok) {
-        mostrarMensagem(mensagem, "Login realizado com sucesso! Redirecionando...", "sucesso");
+    localStorage.setItem("usuarioLogado", JSON.stringify(dados));
+
+    mostrarMensagem(mensagem, "Login realizado com sucesso! Redirecionando...", "sucesso");
         // A definição de qual página abrir (home do cliente ou dashboard do
         // profissional) depende do tipo de usuário retornado pela API.
         // Enquanto esse dado não estiver disponível na resposta, o destino

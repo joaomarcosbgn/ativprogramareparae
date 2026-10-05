@@ -129,4 +129,4 @@ const AVALIACOES_MOCK = [
 ];
 
 /* Usuário logado de exemplo (protótipo) — substituir por sessão real */
-const USUARIO_LOGADO_MOCK = { nome: "Marina", tipo: "cliente" };
+const USUARIO_LOGADO = JSON.parse(localStorage.getItem("usuarioLogado"));

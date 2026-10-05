@@ -119,7 +119,8 @@ function configurarHomeCliente() {
   const saudacao = document.getElementById("saudacaoNome");
   if (!saudacao) return;
 
-  saudacao.textContent = USUARIO_LOGADO_MOCK.nome;
+  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+  saudacao.textContent = usuarioLogado?.nome || "Cliente";
 
   const formBusca = document.getElementById("formBuscaApp");
   if (formBusca) {
@@ -458,21 +459,107 @@ function configurarContaCliente() {
   const formulario = document.getElementById("formContaCliente");
   if (!formulario) return;
 
-  document.getElementById("contaClienteNome").value = USUARIO_LOGADO_MOCK.nome;
+  const usuario = JSON.parse(localStorage.getItem("usuarioLogado"));
+
+  if (!usuario) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  document.getElementById("contaClienteNome").value = usuario.nome || "";
+  document.getElementById("contaClienteEmail").value = usuario.email || "";
 
   const avatarConta = document.getElementById("contaAvatar");
-  if (avatarConta) avatarConta.textContent = iniciaisDoNome(USUARIO_LOGADO_MOCK.nome);
+  if (avatarConta) {
+    avatarConta.textContent = iniciaisDoNome(usuario.nome || "");
+  }
+
   const nomeConta = document.getElementById("contaNomeExibido");
-  if (nomeConta) nomeConta.textContent = USUARIO_LOGADO_MOCK.nome;
+  if (nomeConta) {
+    nomeConta.textContent = usuario.nome || "";
+  }
 
-  formulario.addEventListener("submit", function (evento) {
-    evento.preventDefault();
-    const mensagem = document.getElementById("mensagemContaCliente");
-    // Integração futura: PUT /usuarios/:id
-    mostrarMensagem(mensagem, "Alterações salvas nesta demonstração.", "sucesso");
-  });
+  formulario.addEventListener("submit", async function (evento) {
+  evento.preventDefault();
+
+  const mensagem = document.getElementById("mensagemContaCliente");
+
+  const nome = document.getElementById("contaClienteNome").value.trim();
+  const email = document.getElementById("contaClienteEmail").value.trim();
+  const novaSenha = document.getElementById("contaClienteNovaSenha").value;
+
+  const usuario = JSON.parse(localStorage.getItem("usuarioLogado"));
+  console.log("USUARIO NO SALVAR:", usuario);
+  console.log("ID NO SALVAR:", usuario.id);
+  if (!usuario || !usuario.id) {
+    mostrarMensagem(mensagem, "Usuário não identificado.", "erro");
+    return;
+  }
+
+  const dadosAtualizados = {
+    nome: nome,
+    email: email
+  };
+
+  if (novaSenha) {
+    dadosAtualizados.senha = novaSenha;
+  }
+
+  try {
+    const resposta = await fetch(
+      `${API_BASE_URL}/usuarios/${usuario.id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(dadosAtualizados)
+      }
+    );
+
+    const dados = await resposta.json().catch(function () {
+      return {};
+    });
+
+    if (!resposta.ok) {
+      mostrarMensagem(
+        mensagem,
+        dados.detail || "Não foi possível salvar as alterações.",
+        "erro"
+      );
+      return;
+    }
+
+    localStorage.setItem(
+      "usuarioLogado",
+      JSON.stringify(dados)
+    );
+
+    document.getElementById("contaAvatar").textContent =
+      iniciaisDoNome(dados.nome);
+
+    document.getElementById("contaNomeExibido").textContent =
+      dados.nome;
+
+    document.getElementById("contaClienteNovaSenha").value = "";
+
+    mostrarMensagem(
+      mensagem,
+      "Alterações salvas com sucesso!",
+      "sucesso"
+    );
+
+  } catch (erro) {
+    console.error(erro);
+
+    mostrarMensagem(
+      mensagem,
+      "Não foi possível conectar com o servidor.",
+      "erro"
+    );
+  }
+});
 }
-
 /* ---------------------------------------------------------------------- */
 /* DASHBOARD DO PROFISSIONAL                                              */
 /* ---------------------------------------------------------------------- */
