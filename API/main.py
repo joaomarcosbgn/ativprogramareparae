@@ -1,458 +1,228 @@
-from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 
-import models
-import schemas
-import crud
-from database import engine, get_db
-from security import verificar_senha
-
-
-models.Base.metadata.create_all(bind=engine)
-
-
-app = FastAPI(
-    title="Reparaê API",
-    description="API de cadastro e serviços do Reparaê",
-    version="1.0.0",
-)
-
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-@app.get("/")
-def raiz():
-    return {"mensagem": "API Reparaê no ar 🚀"}
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
+from typing import Literal
+import re
 
 
 # ============================================================
 # USUÁRIOS
 # ============================================================
 
-@app.post(
-    "/usuarios",
-    response_model=schemas.UsuarioOut,
-    status_code=status.HTTP_201_CREATED,
-)
-def cadastrar_usuario(
-    usuario: schemas.UsuarioCreate,
-    db: Session = Depends(get_db),
-):
-    if crud.get_usuario_por_email(db, usuario.email):
-        raise HTTPException(
-            status_code=400,
-            detail="Este e-mail já está cadastrado.",
-        )
+class UsuarioBase(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
 
-    return crud.criar_usuario(db, usuario)
+    nome: str = Field(..., min_length=2, max_length=100)
+    email: EmailStr
+    tipo: Literal["cliente", "profissional"]
 
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, valor: str) -> str:
+        # Permite letras, espaços, acentos, hífen e apóstrofo.
+        padrao = r"^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'-]*$"
 
-@app.get(
-    "/usuarios",
-    response_model=list[schemas.UsuarioOut],
-)
-def listar_usuarios(
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db),
-):
-    return crud.listar_usuarios(db, skip=skip, limit=limit)
-
-
-@app.get(
-    "/usuarios/{usuario_id}",
-    response_model=schemas.UsuarioOut,
-)
-def buscar_usuario(
-    usuario_id: int,
-    db: Session = Depends(get_db),
-):
-    db_usuario = crud.get_usuario(db, usuario_id)
-
-    if not db_usuario:
-        raise HTTPException(
-            status_code=404,
-            detail="Usuário não encontrado.",
-        )
-
-    return db_usuario
-
-
-@app.put(
-    "/usuarios/{usuario_id}",
-    response_model=schemas.UsuarioOut,
-)
-def atualizar_usuario(
-    usuario_id: int,
-    dados: schemas.UsuarioUpdate,
-    db: Session = Depends(get_db),
-):
-    if dados.email:
-        existente = crud.get_usuario_por_email(db, dados.email)
-
-        if existente and existente.id != usuario_id:
-            raise HTTPException(
-                status_code=400,
-                detail="Este e-mail já está em uso por outro usuário.",
+        if not re.fullmatch(padrao, valor):
+            raise ValueError(
+                "O nome deve conter apenas letras e caracteres válidos."
             )
 
-    db_usuario = crud.atualizar_usuario(
-        db,
-        usuario_id,
-        dados,
+        return " ".join(valor.split())
+
+
+class UsuarioCreate(UsuarioBase):
+    senha: str = Field(..., min_length=8, max_length=72)
+
+
+class UsuarioUpdate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    nome: str | None = Field(None, min_length=2, max_length=100)
+    email: EmailStr | None = None
+    tipo: Literal["cliente", "profissional"] | None = None
+    senha: str | None = Field(None, min_length=8, max_length=72)
+
+    @field_validator("nome")
+    @classmethod
+    def validar_nome(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+
+        padrao = r"^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'-]*$"
+
+        if not re.fullmatch(padrao, valor):
+            raise ValueError(
+                "O nome deve conter apenas letras e caracteres válidos."
+            )
+
+        return " ".join(valor.split())
+
+
+class UsuarioOut(BaseModel):
+    # A resposta nunca inclui a senha.
+    model_config = ConfigDict(
+        from_attributes=True,
+        str_strip_whitespace=True,
     )
 
-    if not db_usuario:
-        raise HTTPException(
-            status_code=404,
-            detail="Usuário não encontrado.",
-        )
-
-    return db_usuario
+    id: int
+    nome: str
+    email: EmailStr
+    tipo: Literal["cliente", "profissional", "admin"]
 
 
-@app.delete(
-    "/usuarios/{usuario_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-)
-def deletar_usuario(
-    usuario_id: int,
-    db: Session = Depends(get_db),
-):
-    sucesso = crud.deletar_usuario(
-        db,
-        usuario_id,
-    )
+class LoginRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
 
-    if not sucesso:
-        raise HTTPException(
-            status_code=404,
-            detail="Usuário não encontrado.",
-        )
-
-    return None
+    email: EmailStr
+    senha: str = Field(..., min_length=8, max_length=72)
 
 
-# ============================================================
-# LOGIN
-# ============================================================
-
-@app.post(
-    "/login",
-    response_model=schemas.UsuarioOut,
-)
-def login(
-    dados: schemas.LoginRequest,
-    db: Session = Depends(get_db),
-):
-    db_usuario = crud.get_usuario_por_email(
-        db,
-        dados.email,
-    )
-
-    if not db_usuario or not verificar_senha(
-        dados.senha,
-        db_usuario.senha,
-    ):
-        raise HTTPException(
-            status_code=401,
-            detail="E-mail ou senha inválidos.",
-        )
-
-    return db_usuario
+class LoginResponse(BaseModel):
+    # Resposta do login com token JWT e dados do usuário.
+    access_token: str
+    token_type: str = "bearer"
+    usuario: UsuarioOut
 
 
 # ============================================================
 # CATEGORIAS
 # ============================================================
 
-@app.post(
-    "/categorias",
-    response_model=schemas.CategoriaOut,
-    status_code=status.HTTP_201_CREATED,
-)
-def cadastrar_categoria(
-    categoria: schemas.CategoriaCreate,
-    db: Session = Depends(get_db),
-):
-    if crud.get_categoria_por_nome(
-        db,
-        categoria.nome,
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail="Esta categoria já está cadastrada.",
-        )
+class CategoriaBase(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
 
-    return crud.criar_categoria(
-        db,
-        categoria,
+    nome: str = Field(..., min_length=2, max_length=100)
+    descricao: str | None = Field(None, max_length=255)
+
+
+class CategoriaCreate(CategoriaBase):
+    pass
+
+
+class CategoriaUpdate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    nome: str | None = Field(None, min_length=2, max_length=100)
+    descricao: str | None = Field(None, max_length=255)
+
+
+class CategoriaOut(CategoriaBase):
+    id: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        str_strip_whitespace=True,
     )
-
-
-@app.get(
-    "/categorias",
-    response_model=list[schemas.CategoriaOut],
-)
-def listar_categorias(
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db),
-):
-    return crud.listar_categorias(
-        db,
-        skip=skip,
-        limit=limit,
-    )
-
-
-@app.get(
-    "/categorias/{categoria_id}",
-    response_model=schemas.CategoriaOut,
-)
-def buscar_categoria(
-    categoria_id: int,
-    db: Session = Depends(get_db),
-):
-    db_categoria = crud.get_categoria(
-        db,
-        categoria_id,
-    )
-
-    if not db_categoria:
-        raise HTTPException(
-            status_code=404,
-            detail="Categoria não encontrada.",
-        )
-
-    return db_categoria
-
-
-@app.put(
-    "/categorias/{categoria_id}",
-    response_model=schemas.CategoriaOut,
-)
-def atualizar_categoria(
-    categoria_id: int,
-    dados: schemas.CategoriaUpdate,
-    db: Session = Depends(get_db),
-):
-    if dados.nome:
-        existente = crud.get_categoria_por_nome(
-            db,
-            dados.nome,
-        )
-
-        if existente and existente.id != categoria_id:
-            raise HTTPException(
-                status_code=400,
-                detail="Esta categoria já está cadastrada.",
-            )
-
-    db_categoria = crud.atualizar_categoria(
-        db,
-        categoria_id,
-        dados,
-    )
-
-    if not db_categoria:
-        raise HTTPException(
-            status_code=404,
-            detail="Categoria não encontrada.",
-        )
-
-    return db_categoria
-
-
-@app.delete(
-    "/categorias/{categoria_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-)
-def deletar_categoria(
-    categoria_id: int,
-    db: Session = Depends(get_db),
-):
-    try:
-        sucesso = crud.deletar_categoria(
-            db,
-            categoria_id,
-        )
-
-        if not sucesso:
-            raise HTTPException(
-                status_code=404,
-                detail="Categoria não encontrada.",
-            )
-
-        return None
-
-    except IntegrityError:
-        db.rollback()
-
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "Não é possível excluir esta categoria "
-                "porque existem serviços vinculados a ela."
-            ),
-        )
 
 
 # ============================================================
 # SERVIÇOS
 # ============================================================
 
-@app.post(
-    "/servicos",
-    response_model=schemas.ServicoOut,
-    status_code=status.HTTP_201_CREATED,
-)
-def cadastrar_servico(
-    servico: schemas.ServicoCreate,
-    db: Session = Depends(get_db),
-):
-    if not crud.get_categoria(
-        db,
-        servico.categoria_id,
-    ):
-        raise HTTPException(
-            status_code=404,
-            detail="Categoria não encontrada.",
-        )
+class ServicoBase(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
 
-    return crud.criar_servico(
-        db,
-        servico,
+    categoria_id: int
+    nome: str = Field(..., min_length=2, max_length=100)
+    descricao: str | None = Field(None, max_length=255)
+    preco: float = Field(..., ge=0)
+
+
+class ServicoCreate(ServicoBase):
+    pass
+
+
+class ServicoUpdate(BaseModel):
+    categoria_id: int | None = None
+    nome: str | None = Field(None, min_length=2, max_length=100)
+    descricao: str | None = Field(None, max_length=255)
+    preco: float | None = Field(None, ge=0)
+
+
+class ServicoOut(ServicoBase):
+    id: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        str_strip_whitespace=True,
     )
 
 
-@app.get(
-    "/servicos",
-    response_model=list[schemas.ServicoOut],
-)
-def listar_servicos(
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db),
-):
-    return crud.listar_servicos(
-        db,
-        skip=skip,
-        limit=limit,
-    )
+# ============================================================
+# PROFISSIONAIS
+# ============================================================
 
+class ProfissionalBase(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
 
-# IMPORTANTE:
-# Esta rota precisa ficar antes de /servicos/{servico_id}.
-@app.get(
-    "/servicos/categoria/{categoria_id}",
-    response_model=list[schemas.ServicoOut],
-)
-def listar_servicos_por_categoria(
-    categoria_id: int,
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db),
-):
-    if not crud.get_categoria(
-        db,
-        categoria_id,
-    ):
-        raise HTTPException(
-            status_code=404,
-            detail="Categoria não encontrada.",
-        )
+    usuario_id: int
+    especialidade: str = Field(..., min_length=2, max_length=100)
+    telefone: str = Field(..., min_length=11, max_length=11)
+    disponivel: int = Field(default=1, ge=0, le=1)
 
-    return crud.listar_servicos_por_categoria(
-        db,
-        categoria_id,
-        skip=skip,
-        limit=limit,
-    )
-
-
-@app.get(
-    "/servicos/{servico_id}",
-    response_model=schemas.ServicoOut,
-)
-def buscar_servico(
-    servico_id: int,
-    db: Session = Depends(get_db),
-):
-    db_servico = crud.get_servico(
-        db,
-        servico_id,
-    )
-
-    if not db_servico:
-        raise HTTPException(
-            status_code=404,
-            detail="Serviço não encontrado.",
-        )
-
-    return db_servico
-
-
-@app.put(
-    "/servicos/{servico_id}",
-    response_model=schemas.ServicoOut,
-)
-def atualizar_servico(
-    servico_id: int,
-    dados: schemas.ServicoUpdate,
-    db: Session = Depends(get_db),
-):
-    if dados.categoria_id is not None:
-        if not crud.get_categoria(
-            db,
-            dados.categoria_id,
-        ):
-            raise HTTPException(
-                status_code=404,
-                detail="Categoria não encontrada.",
+    @field_validator("telefone")
+    @classmethod
+    def validar_telefone(cls, valor: str) -> str:
+        if not valor.isdigit():
+            raise ValueError(
+                "O telefone deve conter apenas números."
             )
 
-    db_servico = crud.atualizar_servico(
-        db,
-        servico_id,
-        dados,
+        if len(valor) != 11:
+            raise ValueError(
+                "O telefone deve conter exatamente 11 dígitos."
+            )
+
+        return valor
+
+
+class ProfissionalCreate(ProfissionalBase):
+    pass
+
+
+class ProfissionalUpdate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    usuario_id: int | None = None
+    especialidade: str | None = Field(
+        None,
+        min_length=2,
+        max_length=100,
+    )
+    telefone: str | None = Field(
+        None,
+        min_length=11,
+        max_length=11,
+    )
+    disponivel: int | None = Field(
+        None,
+        ge=0,
+        le=1,
     )
 
-    if not db_servico:
-        raise HTTPException(
-            status_code=404,
-            detail="Serviço não encontrado.",
-        )
+    @field_validator("telefone")
+    @classmethod
+    def validar_telefone(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
 
-    return db_servico
+        if not valor.isdigit():
+            raise ValueError(
+                "O telefone deve conter apenas números."
+            )
+
+        if len(valor) != 11:
+            raise ValueError(
+                "O telefone deve conter exatamente 11 dígitos."
+            )
+
+        return valor
 
 
-@app.delete(
-    "/servicos/{servico_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-)
-def deletar_servico(
-    servico_id: int,
-    db: Session = Depends(get_db),
-):
-    sucesso = crud.deletar_servico(
-        db,
-        servico_id,
+class ProfissionalOut(ProfissionalBase):
+    id: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        str_strip_whitespace=True,
     )
-
-    if not sucesso:
-        raise HTTPException(
-            status_code=404,
-            detail="Serviço não encontrado.",
-        )
-
-    return None
