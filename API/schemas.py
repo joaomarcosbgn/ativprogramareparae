@@ -4,6 +4,8 @@ from typing import Literal
 import re
 
 
+# ---------- USUÁRIOS ----------
+
 class UsuarioBase(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
@@ -14,7 +16,6 @@ class UsuarioBase(BaseModel):
     @field_validator("nome")
     @classmethod
     def validar_nome(cls, valor: str) -> str:
-        # Permite letras, espaços, acentos, hífen e apóstrofo.
         padrao = r"^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ .'-]*$"
 
         if not re.fullmatch(padrao, valor):
@@ -54,7 +55,6 @@ class UsuarioUpdate(BaseModel):
 
 
 class UsuarioOut(BaseModel):
-    # Resposta da API: nunca inclui a senha.
     model_config = ConfigDict(
         from_attributes=True,
         str_strip_whitespace=True,
@@ -71,6 +71,12 @@ class LoginRequest(BaseModel):
 
     email: EmailStr
     senha: str = Field(..., min_length=8, max_length=72)
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    usuario: UsuarioOut
 
 
 # ---------- CATEGORIAS ----------
