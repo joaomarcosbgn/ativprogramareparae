@@ -1,3 +1,4 @@
+
 from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
 from typing import Literal
 import re
@@ -52,14 +53,17 @@ class UsuarioUpdate(BaseModel):
         return " ".join(valor.split())
 
 
-class UsuarioOut(UsuarioBase):
-    id: int
-
-    # Nunca devolvemos o campo "senha" no response
+class UsuarioOut(BaseModel):
+    # Resposta da API: nunca inclui a senha.
     model_config = ConfigDict(
         from_attributes=True,
-        str_strip_whitespace=True
+        str_strip_whitespace=True,
     )
+
+    id: int
+    nome: str
+    email: EmailStr
+    tipo: Literal["cliente", "profissional", "admin"]
 
 
 class LoginRequest(BaseModel):
@@ -94,7 +98,7 @@ class CategoriaOut(CategoriaBase):
 
     model_config = ConfigDict(
         from_attributes=True,
-        str_strip_whitespace=True
+        str_strip_whitespace=True,
     )
 
 
@@ -114,8 +118,6 @@ class ServicoCreate(ServicoBase):
 
 
 class ServicoUpdate(BaseModel):
-    model_config = ConfigDict(str_strip_whitespace=True)
-
     categoria_id: int | None = None
     nome: str | None = Field(None, min_length=2, max_length=100)
     descricao: str | None = Field(None, max_length=255)
@@ -127,7 +129,7 @@ class ServicoOut(ServicoBase):
 
     model_config = ConfigDict(
         from_attributes=True,
-        str_strip_whitespace=True
+        str_strip_whitespace=True,
     )
 
 
@@ -168,17 +170,17 @@ class ProfissionalUpdate(BaseModel):
     especialidade: str | None = Field(
         None,
         min_length=2,
-        max_length=100
+        max_length=100,
     )
     telefone: str | None = Field(
         None,
         min_length=11,
-        max_length=11
+        max_length=11,
     )
     disponivel: int | None = Field(
         None,
         ge=0,
-        le=1
+        le=1,
     )
 
     @field_validator("telefone")
@@ -207,4 +209,3 @@ class ProfissionalOut(ProfissionalBase):
         from_attributes=True,
         str_strip_whitespace=True,
     )
-
