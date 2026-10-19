@@ -8,6 +8,7 @@ const estadoProfissional = {
   categoriaId: null,
   servicos: [],
   regiao: "",
+  midias: [], // { id, arquivo, url, tipo: "imagem" | "video", nome }
 };
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -18,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
   configurarEtapaProfissional2();
   configurarEtapaProfissional3();
   configurarEtapaProfissional4();
+  configurarEtapaProfissionalMidia();
   configurarEtapaProfissional5();
 });
 
@@ -268,9 +270,149 @@ function configurarEtapaProfissional4() {
     }
     definirErro("profRegiao", "");
     estadoProfissional.regiao = regiao;
-    renderizarRevisao();
     irParaEtapa(5);
   });
+}
+
+/* ---------------------------------------------------------------------- */
+/* Etapa 5 — Fotos e vídeos do trabalho                                   */
+/* ---------------------------------------------------------------------- */
+
+const TIPOS_MIDIA_ACEITOS = ["image/", "video/"];
+const TAMANHO_MAXIMO_MIDIA = 100 * 1024 * 1024; // 100 MB, checagem só de UX
+let proximoIdMidia = 1;
+
+function configurarEtapaProfissionalMidia() {
+  const zona = document.getElementById("zonaUpload");
+  const input = document.getElementById("inputMidias");
+  const botaoContinuar = document.getElementById("btnContinuarEtapa5");
+  const botaoPular = document.getElementById("btnPularEtapa5");
+  if (!zona || !input) return;
+
+  input.addEventListener("change", function () {
+    adicionarMidias(input.files);
+    input.value = ""; // permite escolher o mesmo arquivo de novo depois de remover
+  });
+
+  // Também é possível ativar pelo teclado (a zona é um <label> focável)
+  zona.addEventListener("keydown", function (evento) {
+    if (evento.key === "Enter" || evento.key === " ") {
+      evento.preventDefault();
+      input.click();
+    }
+  });
+
+  ["dragenter", "dragover"].forEach(function (evt) {
+    zona.addEventListener(evt, function (evento) {
+      evento.preventDefault();
+      zona.classList.add("arrastando");
+    });
+  });
+  ["dragleave", "drop"].forEach(function (evt) {
+    zona.addEventListener(evt, function (evento) {
+      evento.preventDefault();
+      zona.classList.remove("arrastando");
+    });
+  });
+  zona.addEventListener("drop", function (evento) {
+    if (evento.dataTransfer && evento.dataTransfer.files) {
+      adicionarMidias(evento.dataTransfer.files);
+    }
+  });
+
+  function irParaRevisao() {
+    renderizarRevisao();
+    irParaEtapa(6);
+  }
+
+  botaoContinuar.addEventListener("click", irParaRevisao);
+  botaoPular.addEventListener("click", irParaRevisao);
+}
+
+function adicionarMidias(arquivos) {
+  const erro = document.getElementById("erroMidias");
+  erro.textContent = "";
+
+  Array.from(arquivos).forEach(function (arquivo) {
+    const tipoAceito = TIPOS_MIDIA_ACEITOS.some(function (prefixo) { return arquivo.type.startsWith(prefixo); });
+    if (!tipoAceito) {
+      erro.textContent = "Só é possível enviar fotos ou vídeos.";
+      return;
+    }
+    if (arquivo.size > TAMANHO_MAXIMO_MIDIA) {
+      erro.textContent = `"${arquivo.name}" é maior que 100 MB.`;
+      return;
+    }
+
+    estadoProfissional.midias.push({
+      id: proximoIdMidia++,
+      arquivo: arquivo,
+      url: URL.createObjectURL(arquivo),
+      tipo: arquivo.type.startsWith("video/") ? "video" : "imagem",
+      nome: arquivo.name,
+    });
+  });
+
+  renderizarGradeMidias();
+}
+
+function removerMidia(id) {
+  const indice = estadoProfissional.midias.findIndex(function (m) { return m.id === id; });
+  if (indice === -1) return;
+  URL.revokeObjectURL(estadoProfissional.midias[indice].url);
+  estadoProfissional.midias.splice(indice, 1);
+  renderizarGradeMidias();
+}
+
+function renderizarGradeMidias() {
+  const grade = document.getElementById("gradeMidias");
+  if (!grade) return;
+
+  grade.innerHTML = estadoProfissional.midias.map(function (midia) {
+    const miolo = midia.tipo === "video"
+      ? `<video src="${midia.url}" muted></video><span class="selo-midia"><span class="icone">videocam</span>Vídeo</span>`
+      : `<img src="${midia.url}" alt="${midia.nome}">`;
+    return `
+      <div class="midia-item">
+        ${miolo}
+        <button type="button" class="remover-midia" data-remover-midia="${midia.id}" aria-label="Remover ${midia.nome}">
+          <span class="icone">close</span>
+        </button>
+      </div>
+    `;
+  }).join("");
+
+  grade.querySelectorAll("[data-remover-midia]").forEach(function (botao) {
+    botao.addEventListener("click", function () {
+      removerMidia(Number(botao.dataset.removerMidia));
+    });
+  });
+}
+
+/*
+ * Envio ao backend — ainda não existe um endpoint de upload na API do
+ * Reparaê (ex: POST /profissionais/:id/midias, multipart/form-data).
+ * Por enquanto os arquivos ficam só no navegador, como pré-visualização.
+ * Quando o endpoint existir, chame esta função logo após criar a conta
+ * (ela já está encaixada em configurarEtapaProfissional5, abaixo) — ela
+ * falha em silêncio se o endpoint ainda não responder.
+ */
+async function enviarMidiasParaServidor(idUsuario) {
+  if (estadoProfissional.midias.length === 0) return;
+
+  try {
+    const formulario = new FormData();
+    estadoProfissional.midias.forEach(function (midia) {
+      formulario.append("arquivos", midia.arquivo, midia.nome);
+    });
+
+    await fetch(`${API_BASE_URL}/profissionais/${idUsuario}/midias`, {
+      method: "POST",
+      body: formulario,
+    });
+  } catch (erro) {
+    // Endpoint ainda não existe no backend — sem efeito colateral no cadastro.
+  }
 }
 
 function renderizarRevisao() {
@@ -285,6 +427,9 @@ function renderizarRevisao() {
     ["Categoria", categoria ? categoria.nome : "—"],
     ["Serviços", estadoProfissional.servicos.join(", ")],
     ["Área de atendimento", estadoProfissional.regiao],
+    ["Fotos e vídeos", estadoProfissional.midias.length > 0
+      ? `${estadoProfissional.midias.length} arquivo${estadoProfissional.midias.length > 1 ? "s" : ""}`
+      : "Nenhum arquivo adicionado"],
   ];
 
   container.innerHTML = itens.map(function (item) {
@@ -320,7 +465,8 @@ function configurarEtapaProfissional5() {
       const dados = await resposta.json().catch(function () { return {}; });
 
       if (resposta.ok) {
-        irParaEtapa(6);
+        await enviarMidiasParaServidor(dados.id);
+        irParaEtapa(7);
       } else {
         mostrarMensagem(mensagem, dados.detail || "Não foi possível concluir o cadastro.", "erro");
       }

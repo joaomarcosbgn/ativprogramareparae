@@ -111,7 +111,8 @@
         <span class="stepper-item" data-etapa="2">Categoria</span>
         <span class="stepper-item" data-etapa="3">Serviços</span>
         <span class="stepper-item" data-etapa="4">Área</span>
-        <span class="stepper-item" data-etapa="5">Revisão</span>
+        <span class="stepper-item" data-etapa="5">Fotos</span>
+        <span class="stepper-item" data-etapa="6">Revisão</span>
       </div>
 
       <!-- Etapa 1 — Dados pessoais -->
@@ -206,22 +207,46 @@
         </form>
       </section>
 
-      <!-- Etapa 5 — Revisão -->
+      <!-- Etapa 5 — Fotos e vídeos do trabalho -->
       <section class="etapa-profissional" data-etapa-conteudo="5" hidden>
+        <h1>Mostre seu trabalho</h1>
+        <p class="subtitulo">Adicione fotos e vídeos. Perfis com fotos recebem mais pedidos.</p>
+
+        <label class="zona-upload" id="zonaUpload" for="inputMidias" tabindex="0">
+          <span class="icone">add_photo_alternate</span>
+          <strong>Arraste arquivos aqui</strong>
+          <span>ou clique para escolher — fotos e vídeos</span>
+          <input type="file" id="inputMidias" accept="image/*,video/*" multiple hidden>
+        </label>
+        <span class="erro-campo" id="erroMidias"></span>
+
+        <div class="grade-midias" id="gradeMidias"></div>
+
+        <div class="acoes-etapa">
+          <button type="button" class="btn btn-secundario" data-voltar-etapa="4">Voltar</button>
+          <div style="display:flex; gap: var(--espaco-2);">
+            <button type="button" class="btn-texto" id="btnPularEtapa5">Pular por enquanto</button>
+            <button type="button" class="btn btn-primario" id="btnContinuarEtapa5">Continuar</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Etapa 6 — Revisão -->
+      <section class="etapa-profissional" data-etapa-conteudo="6" hidden>
         <h1>Revise suas informações</h1>
         <p class="subtitulo">Confira antes de concluir o cadastro.</p>
 
         <div id="listaRevisao"></div>
 
         <div class="acoes-etapa" style="margin-top: var(--espaco-4);">
-          <button type="button" class="btn btn-secundario" data-voltar-etapa="4">Voltar</button>
+          <button type="button" class="btn btn-secundario" data-voltar-etapa="5">Voltar</button>
           <button type="button" class="btn btn-primario" id="botaoConcluirCadastro">Concluir cadastro</button>
         </div>
         <p id="mensagemCadastroProfissional" class="mensagem-formulario" role="status"></p>
       </section>
 
-      <!-- Etapa 6 — Conclusão -->
-      <section class="etapa-profissional tela-conclusao" data-etapa-conteudo="6" hidden>
+      <!-- Etapa 7 — Conclusão -->
+      <section class="etapa-profissional tela-conclusao" data-etapa-conteudo="7" hidden>
         <span class="icone">check_circle</span>
         <h1>Cadastro enviado!</h1>
         <p class="subtitulo">Sua conta profissional foi criada. Você já pode acessar seu painel.</p>
@@ -235,5 +260,9 @@
   <script src="scripts/utilitarios.js"></script>
   <script src="scripts/dados.js"></script>
   <script src="scripts/cadastro.js"></script>
+
+  <script>
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="vCGN4vdP-B0rCK6KuCEmW";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+  </script>
 </body>
 </html>
