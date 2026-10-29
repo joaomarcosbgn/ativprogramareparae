@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 import bcrypt
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 
 SECRET_KEY = os.getenv("REPARAE_SECRET_KEY")
@@ -16,7 +16,8 @@ if not SECRET_KEY:
 ALGORITHM = "HS256"
 TEMPO_TOKEN_MINUTOS = 60
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+# Recebe diretamente o token Bearer no Swagger
+bearer_scheme = HTTPBearer()
 
 
 def hash_senha(senha: str) -> str:
@@ -53,9 +54,10 @@ def criar_token_acesso(usuario_id: int) -> str:
 
 
 def obter_id_usuario_token(
-    token: str = Depends(oauth2_scheme),
+    credenciais: HTTPAuthorizationCredentials = Depends(bearer_scheme),
 ) -> int:
-    """Valida o token e retorna o ID do usuário autenticado."""
+    """Valida o token JWT e retorna o ID do usuário."""
+
     erro_autenticacao = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Token inválido ou expirado. Faça login novamente.",
@@ -63,6 +65,8 @@ def obter_id_usuario_token(
     )
 
     try:
+        token = credenciais.credentials
+
         payload = jwt.decode(
             token,
             SECRET_KEY,
