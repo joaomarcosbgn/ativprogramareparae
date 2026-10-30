@@ -64,26 +64,47 @@ function configurarFormularioLogin() {
         return {};
       });
 
-      if (resposta.ok) {
-        mostrarMensagem(mensagem, "Login realizado com sucesso! Redirecionando...", "sucesso");
-        // A definição de qual página abrir (home do cliente ou dashboard do
-        // profissional) depende do tipo de usuário retornado pela API.
-        // Enquanto esse dado não estiver disponível na resposta, o destino
-        // padrão é a home do cliente.
-        setTimeout(function () {
-          window.location.href = "home-cliente.html";
-        }, 600);
-      } else {
-        mostrarMensagem(mensagem, dados.detail || "E-mail ou senha inválidos.", "erro");
-      }
-    } catch (erro) {
-      mostrarMensagem(mensagem, "Não foi possível conectar com o servidor.", "erro");
-      console.error(erro);
-    } finally {
-      botaoEntrar.disabled = false;
+      
+
+if (resposta.ok) {
+  // Guarda o token de autenticação
+  sessionStorage.setItem("token", dados.access_token);
+
+  // Guarda os dados do usuário que fez login
+  sessionStorage.setItem("usuario", JSON.stringify(dados.usuario));
+
+  mostrarMensagem(
+    mensagem,
+    "Login realizado com sucesso! Redirecionando...",
+    "sucesso"
+  );
+
+  // Direciona conforme o tipo de usuário
+  setTimeout(function () {
+    if (dados.usuario.tipo === "profissional") {
+      window.location.href = "dashboard-profissional.html";
+    } else {
+      window.location.href = "home-cliente.html";
     }
-  });
+  }, 600);
+
+} else {
+  mostrarMensagem(
+    mensagem,
+    dados.detail || "E-mail ou senha inválidos.",
+    "erro"
+  );
 }
+
+} catch (erro) {
+  mostrarMensagem(mensagem, "Não foi possível conectar com o servidor.", "erro");
+  console.error(erro);
+} finally {
+  botaoEntrar.disabled = false;
+}
+});
+}
+
 
 /* ---------------------------------------------------------------------- */
 /* Esqueci minha senha                                                    */
