@@ -12,6 +12,8 @@ const LINKS_NAV_CLIENTE = [
   { href: "home-cliente.html", label: "Início", icone: "home", chave: "inicio" },
   { href: "busca.html", label: "Buscar", icone: "search", chave: "buscar" },
   { href: "solicitacoes-cliente.html", label: "Solicitações", icone: "assignment", chave: "solicitacoes" },
+  { href: "mensagens-cliente.html", label: "Mensagens", icone: "chat", chave: "mensagens" },
+  { href: "pagamentos-cliente.html", label: "Pagamentos", icone: "payments", chave: "pagamentos" },
   { href: "conta-cliente.html", label: "Perfil", icone: "person", chave: "perfil" },
 ];
 
@@ -19,6 +21,8 @@ const LINKS_NAV_PROFISSIONAL = [
   { href: "dashboard-profissional.html", label: "Início", icone: "home", chave: "inicio" },
   { href: "solicitacoes-profissional.html", label: "Solicitações", icone: "assignment", chave: "solicitacoes" },
   { href: "servicos-profissional.html", label: "Serviços", icone: "handyman", chave: "servicos" },
+  { href: "mensagens-profissional.html", label: "Mensagens", icone: "chat", chave: "mensagens" },
+  { href: "pagamentos-profissional.html", label: "Pagamentos", icone: "payments", chave: "pagamentos" },
   { href: "perfil-profissional-editar.html", label: "Perfil", icone: "person", chave: "perfil" },
 ];
 

@@ -272,6 +272,15 @@ function configurarPerfilProfissionalPublico() {
   document.getElementById("perfilExperiencia").textContent = p.experiencia;
   document.getElementById("perfilDescricao").textContent = p.descricao;
 
+  // Biografia ("Sobre mim"): só aparece se o profissional preencheu.
+  // Quando o backend expuser GET /profissionais/:id com o campo
+  // "biografia", ele chega aqui sem mudar o frontend.
+  const secaoSobreMim = document.getElementById("secaoSobreMim");
+  if (secaoSobreMim && p.biografia) {
+    document.getElementById("perfilBiografia").textContent = p.biografia;
+    secaoSobreMim.hidden = false;
+  }
+
   const botaoSolicitar = document.getElementById("botaoSolicitarPerfil");
   botaoSolicitar.addEventListener("click", function () {
     botaoSolicitar.textContent = "Solicitação enviada ✓";
@@ -580,13 +589,15 @@ function configurarPerfilProfissionalEditar() {
   const p = PROFISSIONAIS_MOCK[0];
   document.getElementById("editarNome").value = p.nome;
   document.getElementById("editarDescricao").value = p.descricao;
+  document.getElementById("editarBiografia").value = p.biografia || "";
+  configurarContadorCaracteres("editarBiografia", "contadorEditarBiografia");
   document.getElementById("editarExperiencia").value = p.experiencia;
   document.getElementById("editarRegiao").value = p.regiao;
 
   formulario.addEventListener("submit", function (evento) {
     evento.preventDefault();
     const mensagem = document.getElementById("mensagemPerfilProfissionalEditar");
-    // Integração futura: PUT /profissionais/:id
+    // Integração futura: PUT /profissionais/:id (inclui "biografia")
     mostrarMensagem(mensagem, "Perfil atualizado nesta demonstração.", "sucesso");
   });
 }

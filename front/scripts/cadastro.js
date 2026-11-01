@@ -8,6 +8,7 @@ const estadoProfissional = {
   categoriaId: null,
   servicos: [],
   regiao: "",
+  biografia: "",
   midias: [], // { id, arquivo, url, tipo: "imagem" | "video", nome }
 };
 
@@ -15,11 +16,13 @@ document.addEventListener("DOMContentLoaded", function () {
   configurarEscolhaDeTipo();
   configurarVisibilidadeSenhaGenerica();
   configurarFormularioCliente();
+  configurarFormularioAdministrador();
   configurarEtapaProfissional1();
   configurarEtapaProfissional2();
   configurarEtapaProfissional3();
   configurarEtapaProfissional4();
   configurarEtapaProfissionalMidia();
+  configurarContadorCaracteres("profBiografia", "contadorBiografia");
   configurarEtapaProfissional5();
 });
 
@@ -28,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
 /* ---------------------------------------------------------------------- */
 
 function mostrarTela(idTela) {
-  ["telaEscolha", "telaCliente", "telaProfissional"].forEach(function (id) {
+  ["telaEscolha", "telaCliente", "telaProfissional", "telaAdministrador"].forEach(function (id) {
     const el = document.getElementById(id);
     if (el) el.hidden = id !== idTela;
   });
@@ -37,11 +40,16 @@ function mostrarTela(idTela) {
 function configurarEscolhaDeTipo() {
   const btnCliente = document.getElementById("escolherCliente");
   const btnProfissional = document.getElementById("escolherProfissional");
+  const linkAdministrador = document.getElementById("escolherAdministrador");
 
   if (btnCliente) btnCliente.addEventListener("click", function () { mostrarTela("telaCliente"); });
   if (btnProfissional) btnProfissional.addEventListener("click", function () {
     mostrarTela("telaProfissional");
     irParaEtapa(1);
+  });
+  if (linkAdministrador) linkAdministrador.addEventListener("click", function (evento) {
+    evento.preventDefault();
+    mostrarTela("telaAdministrador");
   });
 
   document.querySelectorAll("[data-voltar-escolha]").forEach(function (botao) {
@@ -107,6 +115,70 @@ function configurarFormularioCliente() {
         setTimeout(function () { window.location.href = "login.html"; }, 900);
       } else {
         mostrarMensagem(mensagem, dados.detail || "Não foi possível criar a conta.", "erro");
+      }
+    } catch (erro) {
+      mostrarMensagem(mensagem, "Não foi possível conectar com o servidor.", "erro");
+      console.error(erro);
+    } finally {
+      botao.disabled = false;
+    }
+  });
+}
+
+/* ---------------------------------------------------------------------- */
+/* Cadastro de administrador                                              */
+/* ---------------------------------------------------------------------- */
+/*
+ * IMPORTANTE SOBRE SEGURANÇA: o campo "código de acesso" aqui só evita
+ * cliques por acaso — ele é validado apenas no navegador. A validação
+ * que realmente importa (o código é válido? a conta pode mesmo virar
+ * administrador?) TEM que acontecer no backend, ao processar
+ * tipo: "administrador" no POST /usuarios. Sem isso no servidor,
+ * qualquer pessoa que leia o código-fonte pode criar um admin.
+ */
+function configurarFormularioAdministrador() {
+  const formulario = document.getElementById("formCadastroAdministrador");
+  if (!formulario) return;
+
+  formulario.addEventListener("submit", async function (evento) {
+    evento.preventDefault();
+    document.querySelectorAll("#telaAdministrador .erro-campo").forEach(function (el) { el.textContent = ""; });
+
+    const nome = document.getElementById("adminNome").value.trim();
+    const email = document.getElementById("adminEmail").value.trim();
+    const senha = document.getElementById("adminSenha").value;
+    const confirmarSenha = document.getElementById("adminConfirmarSenha").value;
+    const codigoAcesso = document.getElementById("adminCodigoAcesso").value.trim();
+
+    let valido = true;
+    if (nome.length < 2) { definirErro("adminNome", "Informe seu nome."); valido = false; }
+    if (!validarEmail(email)) { definirErro("adminEmail", "Informe um e-mail válido."); valido = false; }
+    if (senha.length < 8) { definirErro("adminSenha", "A senha deve ter pelo menos 8 caracteres."); valido = false; }
+    if (senha !== confirmarSenha) { definirErro("adminConfirmarSenha", "As senhas não coincidem."); valido = false; }
+    if (codigoAcesso.length < 6) { definirErro("adminCodigoAcesso", "Informe o código de acesso administrativo."); valido = false; }
+    if (!valido) return;
+
+    const mensagem = document.getElementById("mensagemCadastroAdministrador");
+    const botao = document.getElementById("botaoCriarContaAdministrador");
+    botao.disabled = true;
+    mostrarMensagem(mensagem, "Criando conta...", "sucesso");
+
+    try {
+      // O backend precisa validar "codigoAcesso" antes de aceitar
+      // tipo: "administrador" — ver nota de segurança acima.
+      const resposta = await fetch(`${API_BASE_URL}/usuarios`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome: nome, email: email, senha: senha, tipo: "administrador", codigoAcesso: codigoAcesso }),
+      });
+      const dados = await resposta.json().catch(function () { return {}; });
+
+      if (resposta.ok) {
+        mostrarMensagem(mensagem, "Conta criada com sucesso! Redirecionando para o login...", "sucesso");
+        formulario.reset();
+        setTimeout(function () { window.location.href = "login.html"; }, 900);
+      } else {
+        mostrarMensagem(mensagem, dados.detail || "Não foi possível criar a conta. Verifique o código de acesso.", "erro");
       }
     } catch (erro) {
       mostrarMensagem(mensagem, "Não foi possível conectar com o servidor.", "erro");
@@ -270,6 +342,7 @@ function configurarEtapaProfissional4() {
     }
     definirErro("profRegiao", "");
     estadoProfissional.regiao = regiao;
+    estadoProfissional.biografia = document.getElementById("profBiografia").value.trim();
     irParaEtapa(5);
   });
 }
@@ -371,11 +444,11 @@ function renderizarGradeMidias() {
   grade.innerHTML = estadoProfissional.midias.map(function (midia) {
     const miolo = midia.tipo === "video"
       ? `<video src="${midia.url}" muted></video><span class="selo-midia"><span class="icone">videocam</span>Vídeo</span>`
-      : `<img src="${midia.url}" alt="${midia.nome}">`;
+      : `<img src="${midia.url}" alt="${escaparHtml(midia.nome)}">`;
     return `
       <div class="midia-item">
         ${miolo}
-        <button type="button" class="remover-midia" data-remover-midia="${midia.id}" aria-label="Remover ${midia.nome}">
+        <button type="button" class="remover-midia" data-remover-midia="${midia.id}" aria-label="Remover ${escaparHtml(midia.nome)}">
           <span class="icone">close</span>
         </button>
       </div>
@@ -386,6 +459,22 @@ function renderizarGradeMidias() {
     botao.addEventListener("click", function () {
       removerMidia(Number(botao.dataset.removerMidia));
     });
+  });
+}
+
+/*
+ * Biografia ("Sobre mim") — o POST /usuarios atual só aceita a conta
+ * básica, então a biografia vai em uma chamada separada, que o backend
+ * ainda NÃO possui (PATCH /profissionais/:id, ver INTEGRACAO-BACKEND.md).
+ * Falha em silêncio por enquanto; o aviso na etapa de revisão já informa
+ * ao usuário que esses dados ainda não são gravados.
+ */
+async function enviarBiografiaParaServidor(idUsuario) {
+  if (!idUsuario || !estadoProfissional.biografia) return;
+  await chamarApi(`/profissionais/${encodeURIComponent(idUsuario)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ biografia: estadoProfissional.biografia }),
   });
 }
 
@@ -427,13 +516,16 @@ function renderizarRevisao() {
     ["Categoria", categoria ? categoria.nome : "—"],
     ["Serviços", estadoProfissional.servicos.join(", ")],
     ["Área de atendimento", estadoProfissional.regiao],
+    ["Sobre mim", estadoProfissional.biografia
+      ? (estadoProfissional.biografia.length > 90 ? estadoProfissional.biografia.slice(0, 90) + "…" : estadoProfissional.biografia)
+      : "Não informado"],
     ["Fotos e vídeos", estadoProfissional.midias.length > 0
       ? `${estadoProfissional.midias.length} arquivo${estadoProfissional.midias.length > 1 ? "s" : ""}`
       : "Nenhum arquivo adicionado"],
   ];
 
   container.innerHTML = itens.map(function (item) {
-    return `<div class="revisao-item"><span class="rotulo">${item[0]}</span><strong>${item[1]}</strong></div>`;
+    return `<div class="revisao-item"><span class="rotulo">${escaparHtml(item[0])}</span><strong>${escaparHtml(item[1])}</strong></div>`;
   }).join("");
 }
 
@@ -465,6 +557,7 @@ function configurarEtapaProfissional5() {
       const dados = await resposta.json().catch(function () { return {}; });
 
       if (resposta.ok) {
+        await enviarBiografiaParaServidor(dados.id);
         await enviarMidiasParaServidor(dados.id);
         irParaEtapa(7);
       } else {

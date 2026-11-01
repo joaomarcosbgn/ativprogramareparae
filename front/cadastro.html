@@ -43,6 +43,7 @@
       </div>
 
       <p class="auth-rodape">Já tem uma conta? <a href="login.html">Entrar</a></p>
+      <p class="auth-rodape-admin">É administrador do Reparaê? <a href="#" id="escolherAdministrador">Cadastre-se aqui</a></p>
     </div>
 
     <!-- ===================== CADASTRO DE CLIENTE ===================== -->
@@ -102,6 +103,59 @@
       <p class="auth-rodape">Já tem uma conta? <a href="login.html">Entrar</a></p>
     </div>
 
+    <!-- ===================== CADASTRO DE ADMINISTRADOR ===================== -->
+    <div id="telaAdministrador" class="cartao cartao-elevado auth-cartao" hidden>
+      <button type="button" class="btn-texto" data-voltar-escolha><span class="icone">arrow_back</span> Voltar</button>
+      <h1>Criar conta de administrador</h1>
+      <p class="subtitulo">Acesso restrito à equipe do Reparaê.</p>
+
+      <form id="formCadastroAdministrador" novalidate>
+        <div class="campo">
+          <span class="icone">person</span>
+          <label for="adminNome" class="rotulo-oculto">Nome</label>
+          <input type="text" id="adminNome" name="nome" placeholder="Seu nome" autocomplete="name" required maxlength="60">
+        </div>
+        <span class="erro-campo" data-erro-de="adminNome"></span>
+
+        <div class="campo">
+          <span class="icone">mail</span>
+          <label for="adminEmail" class="rotulo-oculto">E-mail</label>
+          <input type="email" id="adminEmail" name="email" placeholder="Seu e-mail" autocomplete="email" required>
+        </div>
+        <span class="erro-campo" data-erro-de="adminEmail"></span>
+
+        <div class="campo campo-com-acao">
+          <span class="icone">lock</span>
+          <label for="adminSenha" class="rotulo-oculto">Senha</label>
+          <input type="password" id="adminSenha" name="senha" placeholder="Crie uma senha" autocomplete="new-password" required minlength="8">
+          <button type="button" class="botao-visibilidade icone" data-alternar-senha="adminSenha" aria-label="Mostrar senha">visibility</button>
+        </div>
+        <span class="erro-campo" data-erro-de="adminSenha"></span>
+
+        <div class="campo campo-com-acao">
+          <span class="icone">lock</span>
+          <label for="adminConfirmarSenha" class="rotulo-oculto">Confirmar senha</label>
+          <input type="password" id="adminConfirmarSenha" name="confirmarSenha" placeholder="Confirme sua senha" autocomplete="new-password" required minlength="8">
+          <button type="button" class="botao-visibilidade icone" data-alternar-senha="adminConfirmarSenha" aria-label="Mostrar senha">visibility</button>
+        </div>
+        <span class="erro-campo" data-erro-de="adminConfirmarSenha"></span>
+
+        <div class="campo campo-com-acao">
+          <span class="icone">admin_panel_settings</span>
+          <label for="adminCodigoAcesso" class="rotulo-oculto">Código de acesso administrativo</label>
+          <input type="password" id="adminCodigoAcesso" name="codigoAcesso" placeholder="Código de acesso" autocomplete="off" required minlength="6">
+          <button type="button" class="botao-visibilidade icone" data-alternar-senha="adminCodigoAcesso" aria-label="Mostrar código">visibility</button>
+        </div>
+        <span class="erro-campo" data-erro-de="adminCodigoAcesso"></span>
+        <p class="dica-campo">Fornecido pela equipe do Reparaê. Sem ele, a conta não pode ser criada como administrador.</p>
+
+        <button type="submit" class="btn btn-primario btn-bloco" id="botaoCriarContaAdministrador">Criar conta de administrador</button>
+        <p id="mensagemCadastroAdministrador" class="mensagem-formulario" role="status"></p>
+      </form>
+
+      <p class="auth-rodape">Já tem uma conta? <a href="login.html">Entrar</a></p>
+    </div>
+
     <!-- ===================== CADASTRO DE PROFISSIONAL (ETAPAS) ===================== -->
     <div id="telaProfissional" class="cartao cartao-elevado auth-cartao largo" hidden>
       <button type="button" class="btn-texto" data-voltar-escolha><span class="icone">arrow_back</span> Voltar</button>
@@ -110,7 +164,7 @@
         <span class="stepper-item" data-etapa="1">Dados</span>
         <span class="stepper-item" data-etapa="2">Categoria</span>
         <span class="stepper-item" data-etapa="3">Serviços</span>
-        <span class="stepper-item" data-etapa="4">Área</span>
+        <span class="stepper-item" data-etapa="4">Perfil</span>
         <span class="stepper-item" data-etapa="5">Fotos</span>
         <span class="stepper-item" data-etapa="6">Revisão</span>
       </div>
@@ -189,8 +243,8 @@
 
       <!-- Etapa 4 — Área de atendimento -->
       <section class="etapa-profissional" data-etapa-conteudo="4" hidden>
-        <h1>Área de atendimento</h1>
-        <p class="subtitulo">Quais bairros ou regiões você atende?</p>
+        <h1>Área e apresentação</h1>
+        <p class="subtitulo">Onde você atende e como se apresenta aos clientes.</p>
 
         <form id="formEtapa4">
           <div class="campo" style="height: auto; padding: var(--espaco-3);">
@@ -199,6 +253,15 @@
             <input type="text" id="profRegiao" placeholder="Ex: Aldeota, Meireles, Centro..." required>
           </div>
           <span class="erro-campo" data-erro-de="profRegiao"></span>
+
+          <div style="margin-bottom: var(--espaco-4);">
+            <label for="profBiografia" class="rotulo-campo">Sobre mim <span style="font-weight: var(--peso-regular); color: var(--texto-secundario);">(opcional)</span></label>
+            <textarea id="profBiografia" class="textarea-campo" maxlength="500" rows="6" placeholder="Conte um pouco sobre você, sua experiência e os serviços que oferece"></textarea>
+            <div class="contador-linha">
+              <span>Conte um pouco sobre você, sua experiência e os serviços que oferece. Essa apresentação aparece no seu perfil público.</span>
+              <span class="contador" id="contadorBiografia">0/500</span>
+            </div>
+          </div>
 
           <div class="acoes-etapa">
             <button type="button" class="btn btn-secundario" data-voltar-etapa="3">Voltar</button>
@@ -237,6 +300,7 @@
         <p class="subtitulo">Confira antes de concluir o cadastro.</p>
 
         <div id="listaRevisao"></div>
+        <p class="aviso-mock" style="margin-top: var(--espaco-3);"><span class="icone">info</span> Demonstração: por enquanto o servidor só cria a conta básica. Biografia, serviços, área e fotos ficam prontos para envio, mas ainda não são gravados.</p>
 
         <div class="acoes-etapa" style="margin-top: var(--espaco-4);">
           <button type="button" class="btn btn-secundario" data-voltar-etapa="5">Voltar</button>

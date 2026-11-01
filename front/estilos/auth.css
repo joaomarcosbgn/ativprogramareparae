@@ -112,6 +112,32 @@
   font-weight: var(--peso-semibold);
 }
 
+/* Cadastro administrativo: link discreto, não é uma opção em destaque
+   como cliente/profissional — evita convidar cadastros indevidos. */
+.auth-rodape-admin {
+  margin-top: var(--espaco-2);
+  text-align: center;
+  font-size: var(--texto-xs);
+  color: var(--texto-secundario);
+  opacity: 0.75;
+}
+
+.auth-rodape-admin a {
+  color: var(--texto-secundario);
+  font-weight: var(--peso-medio);
+  text-decoration: underline;
+}
+
+.auth-rodape-admin a:hover {
+  color: var(--azul-principal);
+}
+
+.dica-campo {
+  font-size: var(--texto-xs);
+  color: var(--texto-secundario);
+  margin: calc(-1 * var(--espaco-2)) 0 var(--espaco-3);
+}
+
 /* ---------------------------------------------------------------------- */
 /* Escolha do tipo de conta                                               */
 /* ---------------------------------------------------------------------- */
@@ -492,4 +518,13 @@
     width: 22px;
     height: 22px;
   }
+}
+
+/* Aviso de demonstração dentro do cadastro (app.css não é carregado aqui) */
+.etapa-profissional .aviso-mock {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-1);
+  font-size: var(--texto-xs);
+  color: var(--texto-secundario);
 }

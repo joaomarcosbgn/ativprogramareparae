@@ -795,3 +795,95 @@ body.corpo-app {
 @media screen and (max-width: 599px) {
   .busca-grande .btn { padding: 0 var(--espaco-4); }
 }
+
+/* ---------------------------------------------------------------------- */
+/* Aviso de modo demonstração (chat e pagamentos)                         */
+/* Mais visível que .aviso-mock: marca dados fictícios de forma explícita */
+/* ---------------------------------------------------------------------- */
+
+.aviso-modo {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-4);
+  padding: var(--espaco-3) var(--espaco-4);
+  border-radius: var(--raio-md);
+  border: 1px solid rgba(245, 124, 0, 0.35);
+  background-color: var(--laranja-suave);
+  color: var(--texto-principal);
+  font-size: var(--texto-sm);
+}
+.aviso-modo[hidden] { display: none; }
+.aviso-modo .icone { color: var(--laranja-hover); font-size: var(--texto-lg); flex-shrink: 0; }
+
+/* ---------------------------------------------------------------------- */
+/* Pagamentos                                                             */
+/* ---------------------------------------------------------------------- */
+
+.resumo-pagamentos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--espaco-4);
+  margin-bottom: var(--espaco-5);
+}
+
+.resumo-card-alerta { background: var(--gradiente-cta); box-shadow: var(--sombra-laranja); }
+.resumo-pagamentos .resumo-card .numero { font-size: var(--texto-xl); overflow-wrap: anywhere; }
+
+.pagamento-principal { display: flex; align-items: center; gap: var(--espaco-3); min-width: 0; }
+
+.pagamento-icone {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.pagamento-pago     { background-color: #E3F5E8; color: #1B7A3C; }
+.pagamento-pendente { background-color: var(--laranja-suave); color: var(--laranja-hover); }
+.pagamento-cancelado { background-color: #FBE4E4; color: #C62828; }
+
+.pagamento-valor { font-size: var(--texto-lg); color: var(--texto-principal); }
+.card-pagamento .card-solicitacao-meta { align-items: flex-end; }
+
+@media screen and (max-width: 599px) {
+  .resumo-pagamentos { grid-template-columns: 1fr; }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Navegação com 6 itens: rótulos compactos para caber no celular         */
+/* ---------------------------------------------------------------------- */
+
+.nav-inferior-item { min-width: 0; }
+.nav-inferior-item > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media screen and (max-width: 479px) {
+  .nav-inferior-item { font-size: 10px; }
+  .nav-inferior-item .icone { font-size: 22px; }
+}
+
+@media screen and (min-width: 768px) and (max-width: 1099px) {
+  .topo-app-links { gap: var(--espaco-3); }
+  .topo-app-link { font-size: var(--texto-xs); }
+}
+
+/* Ícones do menu com caixa fixa: o texto de fallback (fonte ainda não
+   carregada) não pode alargar a barra de navegação. */
+.topo-app-link .icone,
+.nav-inferior-item .icone { width: 1em; height: 1em; flex-shrink: 0; }
+
+.topo-app-links { flex-wrap: nowrap; }
+.topo-app-link { white-space: nowrap; }
+
+/* Tablet: 6 links não cabem com ícone + texto; mantém só o texto. */
+@media screen and (min-width: 768px) and (max-width: 1023px) {
+  .topo-app-link .icone { display: none; }
+  .topo-app-links { gap: var(--espaco-3); }
+}
+
+/* Colunas de formulário podem encolher; ícone de campo com caixa fixa */
+.linha-2-colunas > * { min-width: 0; }
+.campo > .icone { width: 1.2em; height: 1.2em; flex-shrink: 0; }
+.campo input { min-width: 0; }

@@ -423,3 +423,43 @@
 }
 
 .botao-menu-mobile { width: 44px; height: 44px; overflow: hidden; }
+
+/* ---------------------------------------------------------------------- */
+/* Textarea com contador (biografia no cadastro e na edição do perfil)    */
+/* ---------------------------------------------------------------------- */
+
+.rotulo-campo {
+  display: block;
+  margin-bottom: var(--espaco-1);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+  color: var(--texto-principal);
+}
+
+.textarea-campo {
+  width: 100%;
+  min-height: 140px;
+  resize: vertical;
+  padding: var(--espaco-3);
+  border: 2px solid var(--borda-clara);
+  border-radius: var(--raio-md);
+  background-color: var(--cinza-claro);
+  font-family: inherit;
+  font-size: var(--texto-md);
+  line-height: 1.5;
+  transition: border-color 0.15s ease;
+}
+
+.textarea-campo:focus { outline: none; border-color: var(--azul-principal); }
+
+.contador-linha {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-1);
+  font-size: var(--texto-xs);
+  color: var(--texto-secundario);
+}
+.contador-linha .contador { flex-shrink: 0; font-weight: var(--peso-semibold); }
+
+.texto-biografia { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.6; }

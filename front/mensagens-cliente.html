@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mensagens — Reparaê</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet">
+
+  <link rel="stylesheet" href="estilos/tokens.css">
+  <link rel="stylesheet" href="estilos/base.css">
+  <link rel="stylesheet" href="estilos/componentes.css">
+  <link rel="stylesheet" href="estilos/app.css">
+  <link rel="stylesheet" href="estilos/chat.css">
+</head>
+<body class="corpo-app corpo-chat" data-tipo-usuario="cliente" data-pagina="mensagens">
+
+  <header class="topo-app" id="navTopo"></header>
+
+  <main>
+    <section class="cabecalho-pagina">
+      <div class="container">
+        <h1>Mensagens</h1>
+        <p>Converse com os profissionais.</p>
+      </div>
+    </section>
+
+    <section class="secao-app secao-chat">
+      <div class="container">
+        <p class="aviso-modo" id="avisoModoChat" hidden></p>
+
+        <div class="chat" id="chat" data-visao="lista">
+          <aside class="chat-lista">
+            <div class="chat-lista-topo">
+              <div class="campo">
+                <span class="icone">search</span>
+                <label for="filtroConversas" class="rotulo-oculto">Buscar conversa</label>
+                <input type="search" id="filtroConversas" placeholder="Buscar conversa" autocomplete="off">
+              </div>
+            </div>
+            <div class="chat-lista-itens" id="listaConversas"></div>
+          </aside>
+
+          <section class="chat-conversa" id="chatConversa">
+            <div class="chat-vazio"><span class="icone">chat</span><p>Selecione uma conversa para começar.</p></div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="nav-inferior" id="navInferior"></nav>
+
+  <script src="scripts/config.js"></script>
+  <script src="scripts/utilitarios.js"></script>
+  <script src="scripts/dados.js"></script>
+  <script src="scripts/navegacao.js"></script>
+  <script src="scripts/app.js"></script>
+  <script src="scripts/mensagens.js"></script>
+
+  <script>
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="vCGN4vdP-B0rCK6KuCEmW";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+  </script>
+</body>
+</html>

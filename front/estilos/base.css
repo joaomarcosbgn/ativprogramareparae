@@ -84,8 +84,23 @@ select:focus-visible {
   font-weight: normal;
   font-style: normal;
   line-height: 1;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   -webkit-font-smoothing: antialiased;
+  /* Se a fonte de ícones ainda não carregou, o texto de fallback (ex.
+     "admin_panel_settings") fica escondido em vez de quebrar o layout. */
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Ícones "soltos" (sem largura fixa de outro componente) ganham uma
+   caixa mínima para não colapsar a 0px enquanto escondem o fallback. */
+.campo > .icone,
+.btn .icone,
+.chip .icone,
+.escolha-tipo-opcao .icone {
+  min-width: 1.1em;
 }
 
 @media screen and (max-width: 767px) {
