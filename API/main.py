@@ -119,7 +119,24 @@ def cadastrar_usuario(
 
     # UsuarioCreate só aceita cliente ou profissional.
     # A criação de administradores deve ser feita separadamente.
-    return crud.criar_usuario(db, usuario)
+    
+    if usuario.tipo == "profissional":
+        if not usuario.telefone or not usuario.especialidade:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Telefone e especialidade são obrigatórios para profissionais.",
+            )
+
+    try:
+        return crud.criar_usuario(db, usuario)
+
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Não foi possível cadastrar o usuário. Verifique os dados informados.",
+        )
+
 
 
 @app.get(

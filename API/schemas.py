@@ -26,8 +26,41 @@ class UsuarioBase(BaseModel):
         return " ".join(valor.split())
 
 
+
 class UsuarioCreate(UsuarioBase):
     senha: str = Field(..., min_length=8, max_length=72)
+
+    telefone: str | None = None
+    especialidade: str | None = None
+
+    @field_validator("telefone")
+    @classmethod
+    def validar_telefone(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+
+        if not re.fullmatch(r"\d{11}", valor):
+            raise ValueError(
+                "O telefone deve conter exatamente 11 números."
+            )
+
+        return valor
+
+    @field_validator("especialidade")
+    @classmethod
+    def validar_especialidade(cls, valor: str | None) -> str | None:
+        if valor is None:
+            return None
+
+        valor = valor.strip()
+
+        if len(valor) < 2 or len(valor) > 100:
+            raise ValueError(
+                "A especialidade deve ter entre 2 e 100 caracteres."
+            )
+
+        return valor
+
 
 
 class UsuarioUpdate(BaseModel):

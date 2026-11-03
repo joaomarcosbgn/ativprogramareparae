@@ -90,7 +90,17 @@ function configurarFormularioCliente() {
     let valido = true;
     if (nome.length < 2) { definirErro("clienteNome", "Informe seu nome."); valido = false; }
     if (!validarEmail(email)) { definirErro("clienteEmail", "Informe um e-mail válido."); valido = false; }
-    if (telefone.length < 8) { definirErro("clienteTelefone", "Informe um telefone válido."); valido = false; }
+    
+    const telefoneNumeros = telefone.replace(/\D/g, "");
+
+    if (!/^[1-9]{2}9\d{8}$/.test(telefoneNumeros)) {
+    definirErro(
+    "profTelefone",
+    "Informe um celular válido com DDD e 11 números."
+    );
+    valido = false;
+}
+
     if (senha.length < 8) { definirErro("clienteSenha", "A senha deve ter pelo menos 8 caracteres."); valido = false; }
     if (senha !== confirmarSenha) { definirErro("clienteConfirmarSenha", "As senhas não coincidem."); valido = false; }
     if (!termos) { definirErro("clienteTermos", "É preciso aceitar os termos para continuar."); valido = false; }
@@ -213,30 +223,69 @@ function irParaEtapa(numero) {
   });
 }
 
+
 function configurarEtapaProfissional1() {
   const formulario = document.getElementById("formEtapa1");
   if (!formulario) return;
 
   formulario.addEventListener("submit", function (evento) {
     evento.preventDefault();
-    document.querySelectorAll("#telaProfissional [data-etapa-conteudo='1'] .erro-campo").forEach(function (el) { el.textContent = ""; });
+
+    document.querySelectorAll(
+      "#telaProfissional [data-etapa-conteudo='1'] .erro-campo"
+    ).forEach(function (el) {
+      el.textContent = "";
+    });
 
     const nome = document.getElementById("profNome").value.trim();
     const telefone = document.getElementById("profTelefone").value.trim();
     const email = document.getElementById("profEmail").value.trim();
     const senha = document.getElementById("profSenha").value;
 
+    const telefoneNumeros = telefone.replace(/\D/g, "");
     let valido = true;
-    if (nome.length < 2) { definirErro("profNome", "Informe seu nome."); valido = false; }
-    if (telefone.length < 8) { definirErro("profTelefone", "Informe um telefone válido."); valido = false; }
-    if (!validarEmail(email)) { definirErro("profEmail", "Informe um e-mail válido."); valido = false; }
-    if (senha.length < 8) { definirErro("profSenha", "A senha deve ter pelo menos 8 caracteres."); valido = false; }
+
+    if (nome.length < 2) {
+      definirErro("profNome", "Informe seu nome.");
+      valido = false;
+    }
+
+    if (!/^[1-9]{2}9\d{8}$/.test(telefoneNumeros) ||
+        /[A-Za-zÀ-ÿ]/.test(telefone)) {
+      definirErro(
+        "profTelefone",
+        "Informe um celular válido com DDD e 11 números."
+      );
+      valido = false;
+    }
+
+    if (!validarEmail(email)) {
+      definirErro("profEmail", "Informe um e-mail válido.");
+      valido = false;
+    }
+
+    if (senha.length < 8) {
+      definirErro(
+        "profSenha",
+        "A senha deve ter pelo menos 8 caracteres."
+      );
+      valido = false;
+    }
+
+    // Impede o avanço quando algum campo está inválido.
     if (!valido) return;
 
-    Object.assign(estadoProfissional, { nome: nome, telefone: telefone, email: email, senha: senha });
+    Object.assign(estadoProfissional, {
+      nome: nome,
+      telefone: telefoneNumeros,
+      email: email,
+      senha: senha
+    });
+
     irParaEtapa(2);
   });
 }
+
 
 function configurarEtapaProfissional2() {
   const grade = document.getElementById("gradeCategorias");
@@ -546,13 +595,18 @@ function configurarEtapaProfissional5() {
       const resposta = await fetch(`${API_BASE_URL}/usuarios`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        
         body: JSON.stringify({
-          nome: estadoProfissional.nome,
-          email: estadoProfissional.email,
-          telefone: estadoProfissional.telefone,
-          senha: estadoProfissional.senha,
-          tipo: "profissional",
+        nome: estadoProfissional.nome,
+        email: estadoProfissional.email,
+        telefone: estadoProfissional.telefone.replace(/\D/g, ""),
+        senha: estadoProfissional.senha,
+        tipo: "profissional",
+        especialidade: CATEGORIAS.find(function (categoria) {
+        return String(categoria.id) === String(estadoProfissional.categoriaId);
+        })?.nome || "",
         }),
+
       });
       const dados = await resposta.json().catch(function () { return {}; });
 

@@ -23,21 +23,47 @@ def listar_usuarios(
     return db.query(models.Usuario).offset(skip).limit(limit).all()
 
 
+
 def criar_usuario(
     db: Session, usuario: schemas.UsuarioCreate
 ) -> models.Usuario:
-    db_usuario = models.Usuario(
-        nome=usuario.nome,
-        email=usuario.email,
-        senha=hash_senha(usuario.senha),
-        tipo=usuario.tipo,
-    )
 
-    db.add(db_usuario)
-    db.commit()
-    db.refresh(db_usuario)
+    if usuario.tipo == "profissional":
+        if not usuario.telefone or not usuario.especialidade:
+            raise ValueError(
+                "Telefone e especialidade são obrigatórios para profissionais."
+            )
 
-    return db_usuario
+    try:
+        db_usuario = models.Usuario(
+            nome=usuario.nome,
+            email=usuario.email,
+            senha=hash_senha(usuario.senha),
+            tipo=usuario.tipo,
+        )
+
+        db.add(db_usuario)
+        db.flush()
+
+        if usuario.tipo == "profissional":
+            db_profissional = models.Profissional(
+                usuario_id=db_usuario.id,
+                especialidade=usuario.especialidade,
+                telefone=usuario.telefone,
+                disponivel=1,
+            )
+
+            db.add(db_profissional)
+
+        db.commit()
+        db.refresh(db_usuario)
+
+        return db_usuario
+
+    except Exception:
+        db.rollback()
+        raise
+
 
 
 def atualizar_usuario(
