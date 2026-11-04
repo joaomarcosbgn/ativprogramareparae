@@ -64,16 +64,33 @@ function configurarFormularioLogin() {
         return {};
       });
 
+     
       if (resposta.ok) {
-        mostrarMensagem(mensagem, "Login realizado com sucesso! Redirecionando...", "sucesso");
-        // A definição de qual página abrir (home do cliente ou dashboard do
-        // profissional) depende do tipo de usuário retornado pela API.
-        // Enquanto esse dado não estiver disponível na resposta, o destino
-        // padrão é a home do cliente.
-        setTimeout(function () {
-          window.location.href = "home-cliente.html";
-        }, 600);
+      const usuario = dados.usuario;
+
+      if (!usuario || !usuario.id || !usuario.tipo || !dados.access_token) {
+      mostrarMensagem(mensagem, "A API não retornou os dados necessários para o login.", "erro");
+      return;
+      }
+
+      sessionStorage.setItem("token", dados.access_token);
+      sessionStorage.setItem("usuario", JSON.stringify(usuario));
+
+      mostrarMensagem(
+      mensagem,
+      "Login realizado com sucesso! Redirecionando...",
+      "sucesso"
+      );
+
+      setTimeout(function () {
+      if (usuario.tipo === "profissional") {
+      window.location.href = "dashboard-profissional.html";
       } else {
+      window.location.href = "home-cliente.html";
+      }
+      }, 600);
+      }
+ else {
         mostrarMensagem(mensagem, dados.detail || "E-mail ou senha inválidos.", "erro");
       }
     } catch (erro) {

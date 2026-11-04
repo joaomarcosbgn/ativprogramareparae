@@ -123,7 +123,18 @@ function configurarHomeCliente() {
   const saudacao = document.getElementById("saudacaoNome");
   if (!saudacao) return;
 
-  saudacao.textContent = USUARIO_LOGADO_MOCK.nome;
+  
+const usuarioSalvo = sessionStorage.getItem("usuario");
+let usuarioLogado = null;
+
+try {
+  usuarioLogado = usuarioSalvo ? JSON.parse(usuarioSalvo) : null;
+} catch (erro) {
+  console.error("Erro ao ler os dados do usuário:", erro);
+}
+
+saudacao.textContent = usuarioLogado?.nome || "Cliente";
+
 
   const formBusca = document.getElementById("formBuscaApp");
   if (formBusca) {
