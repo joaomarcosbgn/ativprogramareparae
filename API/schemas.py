@@ -248,3 +248,12 @@ class ProfissionalOut(ProfissionalBase):
         from_attributes=True,
         str_strip_whitespace=True,
     )
+
+
+class ProfissionalBuscaOut(BaseModel):
+    id: int
+    usuario_id: int
+    nome: str
+    especialidade: str
+    telefone: str
+    disponivel: int

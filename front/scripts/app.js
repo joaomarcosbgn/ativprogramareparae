@@ -189,73 +189,68 @@ saudacao.textContent = usuarioLogado?.nome || "Cliente";
 /* BUSCA E RESULTADOS                                                     */
 /* ---------------------------------------------------------------------- */
 
+function escaparHtml(valor) {
+  return String(valor ?? "").replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+
 function configurarBusca() {
   const formulario = document.getElementById("formBuscaResultados");
   if (!formulario) return;
-
-  const campoBusca = document.getElementById("campoBuscaResultados");
-  const filtroCategoria = document.getElementById("filtroCategoria");
+  const campo = document.getElementById("campoBuscaResultados");
+  const filtro = document.getElementById("filtroCategoria");
   const resultados = document.getElementById("resultadosBusca");
-
-  filtroCategoria.innerHTML = '<option value="">Todas as categorias</option>' +
-    CATEGORIAS.map(function (c) { return `<option value="${c.id}">${c.nome}</option>`; }).join("");
-
-  const parametros = new URLSearchParams(window.location.search);
-  if (parametros.get("q")) campoBusca.value = parametros.get("q");
-  if (parametros.get("categoria")) filtroCategoria.value = parametros.get("categoria");
-
-  // Chips visuais de categoria (o <select> continua como fonte do filtro)
+  const parametros = new URLSearchParams(location.search);
+  campo.value = parametros.get("q") || "";
+  filtro.innerHTML = '<option value="">Todas as especialidades</option>' +
+    CATEGORIAS.map(c => `<option value="${escaparHtml(c.nome)}">${escaparHtml(c.nome)}</option>`).join("");
+  const categoriaInicial = CATEGORIAS.find(c => String(c.id) === parametros.get("categoria"));
+  if (categoriaInicial) filtro.value = categoriaInicial.nome;
   const chips = document.getElementById("chipsCategorias");
   function renderizarChips() {
     if (!chips) return;
-    const ativa = filtroCategoria.value;
-    chips.innerHTML =
-      `<button type="button" class="chip${ativa === "" ? " ativo" : ""}" data-cat=""><span class="icone">apps</span>Todos</button>` +
-      CATEGORIAS.map(function (c) {
-        return `<button type="button" class="chip${ativa === c.id ? " ativo" : ""}" data-cat="${c.id}"><span class="icone">${c.icone}</span>${c.nome}</button>`;
-      }).join("");
+    chips.innerHTML = '<button type="button" class="chip' + (!filtro.value ? ' ativo' : '') + '" data-cat="">Todos</button>' +
+      CATEGORIAS.map(c => `<button type="button" class="chip${filtro.value === c.nome ? " ativo" : ""}" data-cat="${escaparHtml(c.nome)}">${escaparHtml(c.nome)}</button>`).join("");
   }
-  if (chips) {
-    chips.addEventListener("click", function (evento) {
-      const botao = evento.target.closest("[data-cat]");
-      if (!botao) return;
-      filtroCategoria.value = botao.dataset.cat;
-      renderizarChips();
-      executarBusca();
-    });
+  if (chips) chips.addEventListener("click", e => {
+    const botao = e.target.closest("[data-cat]");
+    if (!botao) return;
+    filtro.value = botao.dataset.cat;
+    renderizarChips();
+    executarBusca();
+  });
+  let requisicao = 0;
+  async function executarBusca() {
+    const atual = ++requisicao;
+    const params = new URLSearchParams({ q: campo.value.trim(), categoria: filtro.value, limit: "100" });
+    resultados.textContent = "Buscando profissionais cadastrados...";
+    try {
+      const resposta = await fetch(`${API_BASE_URL}/profissionais?${params}`);
+      if (!resposta.ok) throw new Error("Não foi possível consultar os profissionais.");
+      const profissionais = await resposta.json();
+      if (atual !== requisicao) return;
+      resultados.innerHTML = profissionais.length ? profissionais.map(p => `
+        <article class="cartao card-profissional">
+          <div class="midia-corpo">
+            <div class="card-profissional-topo">
+              <span class="avatar">${escaparHtml(iniciaisDoNome(p.nome))}</span>
+              <div class="card-profissional-nome"><strong>${escaparHtml(p.nome)}</strong>
+                <span>${escaparHtml(p.especialidade)}</span></div>
+            </div>
+            <p class="descricao">Profissional cadastrado no Reparaê</p>
+            <div class="card-profissional-acoes">
+              <a class="btn btn-secundario" href="perfil-profissional.html?id=${encodeURIComponent(p.id)}">Ver perfil</a>
+            </div>
+          </div>
+        </article>`).join("") : htmlEstadoVazio("search_off", "Nenhum profissional cadastrado encontrado.");
+    } catch (erro) {
+      if (atual === requisicao) resultados.textContent = "Não foi possível carregar profissionais. Verifique se a API está funcionando.";
+    }
   }
+  formulario.addEventListener("submit", e => { e.preventDefault(); executarBusca(); });
+  filtro.addEventListener("change", () => { renderizarChips(); executarBusca(); });
   renderizarChips();
-
-  let temporizador = null;
-
-  function executarBusca() {
-    const termo = campoBusca.value.trim().toLowerCase();
-    const categoria = filtroCategoria.value;
-
-    // Skeleton curto: feedback visual de carregamento
-    resultados.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-    clearTimeout(temporizador);
-    temporizador = setTimeout(function () { exibirResultados(termo, categoria); }, 350);
-  }
-
-  function exibirResultados(termo, categoria) {
-
-    const encontrados = PROFISSIONAIS_MOCK.filter(function (p) {
-      const bateCategoria = !categoria || p.categoria === categoria;
-      const bateTermo = !termo || (p.nome + " " + p.servico + " " + p.descricaoCurta).toLowerCase().includes(termo);
-      return bateCategoria && bateTermo;
-    });
-
-    resultados.innerHTML = encontrados.length
-      ? encontrados.map(htmlCardProfissional).join("")
-      : htmlEstadoVazio("search_off", "Nenhum profissional encontrado para essa busca ainda.");
-
-    configurarBotoesSolicitar(resultados);
-  }
-
-  formulario.addEventListener("submit", function (evento) { evento.preventDefault(); executarBusca(); });
-  filtroCategoria.addEventListener("change", function () { renderizarChips(); executarBusca(); });
-
   executarBusca();
 }
 
@@ -263,68 +258,39 @@ function configurarBusca() {
 /* PERFIL PÚBLICO DO PROFISSIONAL                                         */
 /* ---------------------------------------------------------------------- */
 
-function configurarPerfilProfissionalPublico() {
+async function configurarPerfilProfissionalPublico() {
   const container = document.getElementById("perfilProfissionalConteudo");
   if (!container) return;
-
-  const parametros = new URLSearchParams(window.location.search);
-  const id = Number(parametros.get("id")) || PROFISSIONAIS_MOCK[0].id;
-  const p = PROFISSIONAIS_MOCK.find(function (item) { return item.id === id; }) || PROFISSIONAIS_MOCK[0];
-
-  const capa = document.getElementById("perfilCapa");
-  if (capa) capa.dataset.categoria = p.categoria;
-  const iconeCapa = document.getElementById("perfilIconeCapa");
-  if (iconeCapa) iconeCapa.textContent = iconeDaCategoria(p.categoria);
-
-  document.getElementById("perfilNome").textContent = p.nome;
-  document.getElementById("perfilServico").textContent = p.servico + " · " + p.regiao;
-  document.getElementById("perfilAvatar").textContent = iniciaisDoNome(p.nome);
-  document.getElementById("perfilAvaliacao").innerHTML = `${renderizarEstrelas(p.nota)} ${p.nota.toFixed(1)} <span class="contagem">(${p.numAvaliacoes} avaliações)</span>`;
-  document.getElementById("perfilExperiencia").textContent = p.experiencia;
-  document.getElementById("perfilDescricao").textContent = p.descricao;
-
-  // Biografia ("Sobre mim"): só aparece se o profissional preencheu.
-  // Quando o backend expuser GET /profissionais/:id com o campo
-  // "biografia", ele chega aqui sem mudar o frontend.
-  const secaoSobreMim = document.getElementById("secaoSobreMim");
-  if (secaoSobreMim && p.biografia) {
-    document.getElementById("perfilBiografia").textContent = p.biografia;
-    secaoSobreMim.hidden = false;
+  const id = Number(new URLSearchParams(location.search).get("id"));
+  if (!Number.isInteger(id) || id <= 0) {
+    container.textContent = "Profissional não encontrado.";
+    return;
   }
-
-  const botaoSolicitar = document.getElementById("botaoSolicitarPerfil");
-  botaoSolicitar.addEventListener("click", function () {
-    botaoSolicitar.textContent = "Solicitação enviada ✓";
-    botaoSolicitar.disabled = true;
-  });
-
-  const statsPerfil = document.getElementById("perfilStats");
-  if (statsPerfil) {
-    const anos = (p.experiencia.match(/\d+/) || ["—"])[0];
-    statsPerfil.innerHTML = `
-      <div><strong>${p.nota.toFixed(1)}</strong><span>Nota</span></div>
-      <div><strong>${p.numAvaliacoes}</strong><span>Avaliações</span></div>
-      <div><strong>${anos}</strong><span>Anos de experiência</span></div>
-    `;
+  try {
+    const resposta = await fetch(`${API_BASE_URL}/profissionais/${id}`);
+    if (!resposta.ok) throw new Error("Profissional não encontrado.");
+    const p = await resposta.json();
+    document.getElementById("perfilNome").textContent = p.nome;
+    document.getElementById("perfilServico").textContent = p.especialidade;
+    document.getElementById("perfilAvatar").textContent = iniciaisDoNome(p.nome);
+    document.getElementById("perfilDescricao").textContent = "Profissional cadastrado no Reparaê.";
+    const avaliacao = document.getElementById("perfilAvaliacao");
+    if (avaliacao) avaliacao.textContent = "Ainda sem avaliações";
+    const experiencia = document.getElementById("perfilExperiencia");
+    if (experiencia) experiencia.textContent = "Não informada";
+    const stats = document.getElementById("perfilStats");
+    if (stats) stats.textContent = "Informações adicionais ainda não cadastradas.";
+    const sobre = document.getElementById("secaoSobreMim");
+    if (sobre) sobre.hidden = true;
+    const portfolio = document.getElementById("secaoPortfolio");
+    if (portfolio) portfolio.hidden = true;
+    const solicitar = document.getElementById("botaoSolicitarPerfil");
+    if (solicitar) { solicitar.disabled = true; solicitar.title = "Solicitações ainda não estão disponíveis"; }
+    const avaliacoes = document.getElementById("gradeAvaliacoesPerfil");
+    if (avaliacoes) avaliacoes.textContent = "Nenhuma avaliação registrada.";
+  } catch (erro) {
+    container.textContent = "Não foi possível carregar o profissional cadastrado.";
   }
-
-  // Galeria de trabalhos (placeholders coloridos até haver fotos reais).
-  // Para fotos reais, defina p.fotos = ["url1", "url2", ...] em dados.js.
-  const secaoPortfolio = document.getElementById("secaoPortfolio");
-  if (p.portfolio) {
-    secaoPortfolio.hidden = false;
-    const fotos = p.fotos || [];
-    const iconeGaleria = iconeDaCategoria(p.categoria);
-    document.getElementById("portfolioGrade").innerHTML = Array.from({ length: 6 })
-      .map(function (_, i) {
-        return fotos[i]
-          ? `<div class="portfolio-item" data-categoria="${p.categoria}" style="background-image:url('${fotos[i]}');background-size:cover;background-position:center;"></div>`
-          : `<div class="portfolio-item" data-categoria="${p.categoria}"><span class="icone">${iconeGaleria}</span></div>`;
-      })
-      .join("");
-  }
-
-  renderizarAvaliacoesEm("gradeAvaliacoesPerfil");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -478,22 +444,73 @@ function configurarSolicitacaoDetalhe() {
 /* CONTA DO CLIENTE                                                       */
 /* ---------------------------------------------------------------------- */
 
-function configurarContaCliente() {
+async function configurarContaCliente() {
   const formulario = document.getElementById("formContaCliente");
   if (!formulario) return;
-
-  document.getElementById("contaClienteNome").value = USUARIO_LOGADO_MOCK.nome;
-
-  const avatarConta = document.getElementById("contaAvatar");
-  if (avatarConta) avatarConta.textContent = iniciaisDoNome(USUARIO_LOGADO_MOCK.nome);
-  const nomeConta = document.getElementById("contaNomeExibido");
-  if (nomeConta) nomeConta.textContent = USUARIO_LOGADO_MOCK.nome;
-
-  formulario.addEventListener("submit", function (evento) {
+  const mensagem = document.getElementById("mensagemContaCliente");
+  const token = sessionStorage.getItem("token");
+  let usuario;
+  try { usuario = JSON.parse(sessionStorage.getItem("usuario") || "null"); } catch (_) {}
+  if (!token || !usuario?.id) {
+    mostrarMensagem(mensagem, "Faça login para acessar sua conta.", "erro");
+    formulario.querySelector('button[type="submit"]').disabled = true;
+    return;
+  }
+  function preencher(dados) {
+    document.getElementById("contaClienteNome").value = dados.nome;
+    document.getElementById("contaClienteEmail").value = dados.email;
+    document.getElementById("contaNomeExibido").textContent = dados.nome;
+    document.getElementById("contaAvatar").textContent = iniciaisDoNome(dados.nome);
+  }
+  try {
+    const r = await fetch(`${API_BASE_URL}/usuarios/${usuario.id}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!r.ok) throw new Error("Não foi possível consultar sua conta.");
+    usuario = await r.json();
+    sessionStorage.setItem("usuario", JSON.stringify(usuario));
+    preencher(usuario);
+  } catch (erro) {
+    mostrarMensagem(mensagem, "Erro ao carregar a conta. Verifique o login e a API.", "erro");
+    return;
+  }
+  const excluir = document.getElementById("botaoExcluirConta");
+  if (excluir) excluir.addEventListener("click", async function () {
+    if (!window.confirm("Excluir sua conta permanentemente? Essa ação não pode ser desfeita.")) return;
+    try {
+      const r = await fetch(`${API_BASE_URL}/usuarios/${usuario.id}`, {
+        method: "DELETE", headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!r.ok) {
+        const dados = await r.json().catch(() => ({}));
+        throw new Error(typeof dados.detail === "string" ? dados.detail : "Não foi possível excluir a conta.");
+      }
+      sessionStorage.removeItem("usuario");
+      sessionStorage.removeItem("token");
+      location.href = "index.html";
+    } catch (erro) { mostrarMensagem(mensagem, erro.message, "erro"); }
+  });
+  const telefone = document.getElementById("contaClienteTelefone");
+  if (telefone) { telefone.disabled = true; telefone.placeholder = "Telefone ainda não disponível no cadastro de clientes"; }
+  formulario.addEventListener("submit", async function (evento) {
     evento.preventDefault();
-    const mensagem = document.getElementById("mensagemContaCliente");
-    // Integração futura: PUT /usuarios/:id
-    mostrarMensagem(mensagem, "Alterações salvas nesta demonstração.", "sucesso");
+    const dados = {
+      nome: document.getElementById("contaClienteNome").value.trim(),
+      email: document.getElementById("contaClienteEmail").value.trim()
+    };
+    const senha = document.getElementById("contaClienteNovaSenha").value;
+    if (senha) dados.senha = senha;
+    try {
+      const r = await fetch(`${API_BASE_URL}/usuarios/${usuario.id}`, {
+        method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(dados)
+      });
+      const resultado = await r.json();
+      if (!r.ok) throw new Error(typeof resultado.detail === "string" ? resultado.detail : "Dados inválidos.");
+      usuario = resultado;
+      sessionStorage.setItem("usuario", JSON.stringify(usuario));
+      preencher(usuario);
+      document.getElementById("contaClienteNovaSenha").value = "";
+      mostrarMensagem(mensagem, "Alterações salvas no banco de dados!", "sucesso");
+    } catch (erro) { mostrarMensagem(mensagem, erro.message, "erro"); }
   });
 }
 
