@@ -94,11 +94,12 @@ function configurarFormularioCliente() {
     const telefoneNumeros = telefone.replace(/\D/g, "");
 
     if (!/^[1-9]{2}9\d{8}$/.test(telefoneNumeros)) {
-    definirErro(
-    "profTelefone",
+  definirErro(
+    "clienteTelefone",
     "Informe um celular válido com DDD e 11 números."
-    );
-    valido = false;
+  );
+  valido = false;
+
 }
 
     if (senha.length < 8) { definirErro("clienteSenha", "A senha deve ter pelo menos 8 caracteres."); valido = false; }
@@ -611,12 +612,14 @@ function configurarEtapaProfissional5() {
       const dados = await resposta.json().catch(function () { return {}; });
 
       if (resposta.ok) {
-        await enviarBiografiaParaServidor(dados.id);
-        await enviarMidiasParaServidor(dados.id);
-        irParaEtapa(7);
-      } else {
-        mostrarMensagem(mensagem, dados.detail || "Não foi possível concluir o cadastro.", "erro");
-      }
+  irParaEtapa(7);
+} else {
+  mostrarMensagem(
+    mensagem,
+    dados.detail || "Não foi possível concluir o cadastro.",
+    "erro"
+  );
+}
     } catch (erro) {
       mostrarMensagem(mensagem, "Não foi possível conectar com o servidor.", "erro");
       console.error(erro);
