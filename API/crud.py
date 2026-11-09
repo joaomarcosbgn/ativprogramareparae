@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 
 import models
 import schemas
@@ -74,7 +75,8 @@ def atualizar_usuario(
     if not db_usuario:
         return None
 
-    dados_dict = dados.model_dump(exclude_unset=True)
+    dados_dict = dados.model_dump(exclude_unset=True, exclude_none=True)
+    dados_dict.pop("tipo", None)  # O tipo não muda pelo CRUD comum.
 
     if "senha" in dados_dict:
         dados_dict["senha"] = hash_senha(dados_dict["senha"])
@@ -94,6 +96,10 @@ def deletar_usuario(db: Session, usuario_id: int) -> bool:
     if not db_usuario:
         return False
 
+    # Respeita vínculos existentes e evita excluir contas com dados relacionados.
+    if db_usuario.profissional is not None:
+        db.delete(db_usuario.profissional)
+        db.flush()
     db.delete(db_usuario)
     db.commit()
 
@@ -275,3 +281,40 @@ def deletar_servico(
     db.commit()
 
     return True
+
+
+# ============================================================
+# PROFISSIONAIS REAIS (PESQUISA PÚBLICA)
+# ============================================================
+
+def _profissional_publico(profissional):
+    return {
+        "id": profissional.id,
+        "usuario_id": profissional.usuario_id,
+        "nome": profissional.usuario.nome,
+        "especialidade": profissional.especialidade,
+        "telefone": profissional.telefone,
+        "disponivel": profissional.disponivel,
+    }
+
+
+def pesquisar_profissionais(db, q="", categoria="", skip=0, limit=50):
+    consulta = (db.query(models.Profissional)
+                .join(models.Usuario)
+                .filter(models.Profissional.disponivel == 1,
+                        models.Usuario.tipo == "profissional"))
+    if q.strip():
+        termo = f"%{q.strip()}%"
+        consulta = consulta.filter(or_(models.Usuario.nome.ilike(termo),
+                                       models.Profissional.especialidade.ilike(termo)))
+    if categoria.strip():
+        consulta = consulta.filter(models.Profissional.especialidade.ilike(categoria.strip()))
+    return [_profissional_publico(p) for p in consulta.order_by(models.Usuario.nome, models.Profissional.id).offset(skip).limit(limit).all()]
+
+
+def obter_profissional_publico(db, profissional_id):
+    p = (db.query(models.Profissional).join(models.Usuario)
+         .filter(models.Profissional.id == profissional_id,
+                 models.Profissional.disponivel == 1,
+                 models.Usuario.tipo == "profissional").first())
+    return _profissional_publico(p) if p else None

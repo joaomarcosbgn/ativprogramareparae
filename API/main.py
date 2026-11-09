@@ -204,14 +204,10 @@ def atualizar_usuario(
 
     # Impede que alguém mude o próprio tipo de conta.
     # O administrador também não pode criar outro admin por esta rota.
-    if (
-        usuario_atual.tipo != "admin"
-        and dados.tipo is not None
-        and dados.tipo != db_usuario.tipo
-    ):
+    if dados.tipo is not None and dados.tipo != db_usuario.tipo:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Você não tem permissão para alterar o tipo da conta.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="O tipo da conta não pode ser alterado por esta rota.",
         )
 
     if dados.email:
@@ -319,6 +315,32 @@ def login(
         "token_type": "bearer",
         "usuario": db_usuario,
     }
+
+
+# ============================================================
+# PESQUISA PÚBLICA DE PROFISSIONAIS REAIS
+# ============================================================
+
+@app.get("/profissionais", response_model=list[schemas.ProfissionalBuscaOut])
+def pesquisar_profissionais(
+    q: str = "",
+    categoria: str = "",
+    skip: int = 0,
+    limit: int = 50,
+    db: Session = Depends(get_db),
+):
+    """Consulta apenas profissionais cadastrados e disponíveis."""
+    if skip < 0 or not 1 <= limit <= 100:
+        raise HTTPException(status_code=400, detail="Use skip >= 0 e limit entre 1 e 100.")
+    return crud.pesquisar_profissionais(db, q=q, categoria=categoria, skip=skip, limit=limit)
+
+
+@app.get("/profissionais/{profissional_id}", response_model=schemas.ProfissionalBuscaOut)
+def obter_profissional_publico(profissional_id: int, db: Session = Depends(get_db)):
+    profissional = crud.obter_profissional_publico(db, profissional_id)
+    if not profissional:
+        raise HTTPException(status_code=404, detail="Profissional não encontrado.")
+    return profissional
 
 
 # ============================================================
