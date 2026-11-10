@@ -257,3 +257,23 @@ class ProfissionalBuscaOut(BaseModel):
     especialidade: str
     telefone: str
     disponivel: int
+
+# ---------- SOLICITAÇÕES ----------
+
+class SolicitacaoCreate(BaseModel):
+    profissional_id: int = Field(..., gt=0)
+    servico_id: int = Field(..., gt=0)
+
+
+class SolicitacaoStatusUpdate(BaseModel):
+    status: Literal["Aceita", "Recusada", "Concluída", "Cancelada"]
+
+
+class SolicitacaoOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    usuario_id: int
+    profissional_id: int
+    servico_id: int
+    status: str
+    data: str

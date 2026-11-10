@@ -98,6 +98,9 @@ function renderizarAvaliacoesEm(idContainer) {
   const container = document.getElementById(idContainer);
   if (!container) return;
 
+  container.innerHTML = htmlEstadoVazio("star_outline", "Ainda não há avaliações registradas.");
+  return;
+  /* Dados de demonstração desativados.
   container.innerHTML = AVALIACOES_MOCK.map(function (item) {
     return `
       <article class="cartao avaliacao-card">
@@ -113,6 +116,7 @@ function renderizarAvaliacoesEm(idContainer) {
       </article>
     `;
   }).join("");
+  */
 }
 
 /* ---------------------------------------------------------------------- */
@@ -147,40 +151,41 @@ saudacao.textContent = usuarioLogado?.nome || "Cliente";
 
   const gradeCategorias = document.getElementById("gradeCategoriasApp");
   if (gradeCategorias) {
-    gradeCategorias.innerHTML = CATEGORIAS.map(function (cat) {
-      return `
-        <a class="categoria-card" data-categoria="${cat.id}" href="busca.html?categoria=${cat.id}">
-          <span class="categoria-icone icone">${cat.icone}</span>
-          <span class="nome">${cat.nome}</span>
-        </a>
-      `;
-    }).join("");
+    gradeCategorias.textContent = "Carregando especialidades...";
+    fetch(`${API_BASE_URL}/profissionais?limit=100`)
+      .then(r => { if (!r.ok) throw new Error("Falha ao consultar especialidades"); return r.json(); })
+      .then(lista => {
+        const nomes = [...new Set(lista.map(p => String(p.especialidade || "").trim()).filter(Boolean))].sort();
+        gradeCategorias.innerHTML = nomes.length ? nomes.map(nome =>
+          `<a class="categoria-card" href="busca.html?categoria=${encodeURIComponent(nome)}"><span class="categoria-icone icone">handyman</span><span class="nome">${escaparHtml(nome)}</span></a>`
+        ).join("") : htmlEstadoVazio("category", "Ainda não há especialidades cadastradas.");
+      }).catch(() => { gradeCategorias.textContent = "Não foi possível carregar as especialidades."; });
   }
 
   const gradeRecomendados = document.getElementById("gradeProfissionaisRecomendados");
   if (gradeRecomendados) {
-    gradeRecomendados.innerHTML = PROFISSIONAIS_MOCK.slice(0, 3).map(htmlCardProfissional).join("");
-    configurarBotoesSolicitar(gradeRecomendados);
+    gradeRecomendados.textContent = "Carregando profissionais...";
+    fetch(`${API_BASE_URL}/profissionais?limit=3`)
+      .then(resposta => { if (!resposta.ok) throw new Error("Falha na consulta"); return resposta.json(); })
+      .then(profissionais => {
+        gradeRecomendados.innerHTML = profissionais.length ? profissionais.map(p => `
+          <article class="cartao card-profissional">
+            <div class="midia-corpo">
+              <div class="card-profissional-topo">
+                <span class="avatar">${escaparHtml(iniciaisDoNome(p.nome))}</span>
+                <div class="card-profissional-nome"><strong>${escaparHtml(p.nome)}</strong>
+                  <span>${escaparHtml(p.especialidade)}</span></div>
+              </div>
+              <p class="descricao">Profissional cadastrado no Reparaê</p>
+              <div class="card-profissional-acoes"><a class="btn btn-secundario" href="perfil-profissional.html?id=${encodeURIComponent(p.id)}">Ver perfil</a></div>
+            </div>
+          </article>`).join("") : htmlEstadoVazio("search_off", "Ainda não há profissionais cadastrados.");
+      })
+      .catch(() => { gradeRecomendados.textContent = "Não foi possível carregar os profissionais."; });
   }
 
   const listaHome = document.getElementById("listaSolicitacoesHome");
-  if (listaHome) {
-    const rotulosHome = { andamento: "Em andamento", concluida: "Concluída", cancelada: "Cancelada" };
-    listaHome.innerHTML = SOLICITACOES_CLIENTE_MOCK.slice(0, 2).map(function (s) {
-      return `
-        <a class="cartao card-solicitacao" href="solicitacao-detalhe.html?id=${s.id}&tipo=cliente">
-          <div>
-            <h3>${s.servico}</h3>
-            <p class="pessoa">com ${s.profissional}</p>
-          </div>
-          <div class="card-solicitacao-meta">
-            <span class="data">${s.data}</span>
-            <span class="status-badge status-${s.status}">${rotulosHome[s.status]}</span>
-          </div>
-        </a>
-      `;
-    }).join("");
-  }
+  if (listaHome) listaHome.innerHTML = htmlEstadoVazio("inbox", "Nenhuma solicitação disponível. O acompanhamento será ativado quando a API de solicitações estiver pronta.");
 
   renderizarAvaliacoesEm("gradeAvaliacoesApp");
 }
@@ -203,15 +208,13 @@ function configurarBusca() {
   const resultados = document.getElementById("resultadosBusca");
   const parametros = new URLSearchParams(location.search);
   campo.value = parametros.get("q") || "";
-  filtro.innerHTML = '<option value="">Todas as especialidades</option>' +
-    CATEGORIAS.map(c => `<option value="${escaparHtml(c.nome)}">${escaparHtml(c.nome)}</option>`).join("");
-  const categoriaInicial = CATEGORIAS.find(c => String(c.id) === parametros.get("categoria"));
-  if (categoriaInicial) filtro.value = categoriaInicial.nome;
+  const categoriaURL = parametros.get("categoria") || "";
   const chips = document.getElementById("chipsCategorias");
+  let especialidades = [];
   function renderizarChips() {
     if (!chips) return;
     chips.innerHTML = '<button type="button" class="chip' + (!filtro.value ? ' ativo' : '') + '" data-cat="">Todos</button>' +
-      CATEGORIAS.map(c => `<button type="button" class="chip${filtro.value === c.nome ? " ativo" : ""}" data-cat="${escaparHtml(c.nome)}">${escaparHtml(c.nome)}</button>`).join("");
+      especialidades.map(nome => `<button type="button" class="chip${filtro.value === nome ? " ativo" : ""}" data-cat="${escaparHtml(nome)}">${escaparHtml(nome)}</button>`).join("");
   }
   if (chips) chips.addEventListener("click", e => {
     const botao = e.target.closest("[data-cat]");
@@ -220,6 +223,25 @@ function configurarBusca() {
     renderizarChips();
     executarBusca();
   });
+  async function carregarEspecialidades() {
+    try {
+      const resposta = await fetch(`${API_BASE_URL}/profissionais?limit=100`);
+      if (!resposta.ok) throw new Error("Falha ao carregar especialidades");
+      const profissionais = await resposta.json();
+      especialidades = [...new Set(profissionais.map(p => String(p.especialidade || "").trim()).filter(Boolean))].sort();
+      filtro.replaceChildren();
+      const todos = document.createElement("option"); todos.value = ""; todos.textContent = "Todas as especialidades"; filtro.append(todos);
+      especialidades.forEach(nome => { const option = document.createElement("option"); option.value = nome; option.textContent = nome; filtro.append(option); });
+      const categoriaAntiga = CATEGORIAS.find(c => String(c.id) === categoriaURL);
+      const selecionada = categoriaAntiga?.nome || categoriaURL;
+      if (especialidades.includes(selecionada)) filtro.value = selecionada;
+      renderizarChips();
+    } catch (_) {
+      filtro.innerHTML = '<option value="">Todas as especialidades</option>';
+      renderizarChips();
+    }
+    executarBusca();
+  }
   let requisicao = 0;
   async function executarBusca() {
     const atual = ++requisicao;
@@ -250,8 +272,7 @@ function configurarBusca() {
   }
   formulario.addEventListener("submit", e => { e.preventDefault(); executarBusca(); });
   filtro.addEventListener("change", () => { renderizarChips(); executarBusca(); });
-  renderizarChips();
-  executarBusca();
+  carregarEspecialidades();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -300,144 +321,39 @@ async function configurarPerfilProfissionalPublico() {
 function configurarSolicitacoesCliente() {
   const container = document.getElementById("listaSolicitacoesCliente");
   if (!container) return;
-
-  const rotulos = { andamento: "Em andamento", concluida: "Concluídas", cancelada: "Canceladas" };
   const abas = document.querySelectorAll("#abasSolicitacoesCliente .aba");
-
-  function renderizar(status) {
-    const itens = SOLICITACOES_CLIENTE_MOCK.filter(function (s) { return s.status === status; });
-    container.innerHTML = itens.length
-      ? itens.map(function (s) {
-          return `
-            <a class="cartao card-solicitacao" href="solicitacao-detalhe.html?id=${s.id}&tipo=cliente">
-              <div>
-                <h3>${s.servico}</h3>
-                <p class="pessoa">com ${s.profissional}</p>
-                <p class="resumo">${s.resumo}</p>
-              </div>
-              <div class="card-solicitacao-meta">
-                <span class="data">${s.data}</span>
-                <span class="status-badge status-${s.status}">${rotulos[s.status]}</span>
-              </div>
-            </a>
-          `;
-        }).join("")
-      : htmlEstadoVazio("inbox", `Você não tem solicitações ${rotulos[status].toLowerCase()}.`);
-  }
-
-  abas.forEach(function (aba) {
-    aba.addEventListener("click", function () {
-      abas.forEach(function (a) { a.classList.remove("ativa"); });
-      aba.classList.add("ativa");
-      renderizar(aba.dataset.status);
-    });
-  });
-
-  renderizar("andamento");
+  const renderizar = () => { container.innerHTML = htmlEstadoVazio("inbox", "Ainda não há solicitações disponíveis. Esta função aguarda integração com a API."); };
+  abas.forEach(aba => aba.addEventListener("click", () => {
+    abas.forEach(a => a.classList.remove("ativa"));
+    aba.classList.add("ativa");
+    renderizar();
+  }));
+  renderizar();
 }
 
 /* ---------------------------------------------------------------------- */
 /* SOLICITAÇÕES DO PROFISSIONAL                                           */
 /* ---------------------------------------------------------------------- */
-
 function configurarSolicitacoesProfissional() {
   const container = document.getElementById("listaSolicitacoesProfissional");
   if (!container) return;
-
-  const rotulos = { nova: "Nova", aceita: "Aceita", andamento: "Em andamento", historico: "Histórico" };
   const abas = document.querySelectorAll("#abasSolicitacoesProfissional .aba");
-
-  function renderizar(status) {
-    const itens = SOLICITACOES_PROFISSIONAL_MOCK.filter(function (s) { return s.status === status; });
-    container.innerHTML = itens.length
-      ? itens.map(function (s) {
-          return `
-            <a class="cartao card-solicitacao" href="solicitacao-detalhe.html?id=${s.id}&tipo=profissional">
-              <div>
-                <h3>${s.servico}</h3>
-                <p class="pessoa">para ${s.cliente}</p>
-                <p class="resumo">${s.resumo}</p>
-              </div>
-              <div class="card-solicitacao-meta">
-                <span class="data">${s.data}</span>
-                <span class="status-badge status-${s.status}">${rotulos[s.status]}</span>
-              </div>
-            </a>
-          `;
-        }).join("")
-      : htmlEstadoVazio("inbox", `Nenhuma solicitação em "${rotulos[status]}" no momento.`);
-  }
-
-  abas.forEach(function (aba) {
-    aba.addEventListener("click", function () {
-      abas.forEach(function (a) { a.classList.remove("ativa"); });
-      aba.classList.add("ativa");
-      renderizar(aba.dataset.status);
-    });
-  });
-
-  renderizar("nova");
+  const renderizar = () => { container.innerHTML = htmlEstadoVazio("inbox", "Ainda não há solicitações disponíveis. Esta função aguarda integração com a API."); };
+  abas.forEach(aba => aba.addEventListener("click", () => {
+    abas.forEach(a => a.classList.remove("ativa"));
+    aba.classList.add("ativa");
+    renderizar();
+  }));
+  renderizar();
 }
 
 /* ---------------------------------------------------------------------- */
-/* DETALHE DE SOLICITAÇÃO (cliente ou profissional)                       */
+/* DETALHE DE SOLICITAÇÃO                                                 */
 /* ---------------------------------------------------------------------- */
-
 function configurarSolicitacaoDetalhe() {
   const container = document.getElementById("detalheSolicitacaoConteudo");
   if (!container) return;
-
-  const parametros = new URLSearchParams(window.location.search);
-  const id = Number(parametros.get("id"));
-  const tipo = parametros.get("tipo") === "profissional" ? "profissional" : "cliente";
-
-  if (typeof renderizarNavegacao === "function") {
-    renderizarNavegacao(tipo, "solicitacoes");
-  }
-
-  const lista = tipo === "profissional" ? SOLICITACOES_PROFISSIONAL_MOCK : SOLICITACOES_CLIENTE_MOCK;
-  const item = lista.find(function (s) { return s.id === id; }) || lista[0];
-  const rotulosCliente = { andamento: "Em andamento", concluida: "Concluída", cancelada: "Cancelada" };
-  const rotulosProfissional = { nova: "Nova", aceita: "Aceita", andamento: "Em andamento", historico: "Histórico" };
-  const rotulo = tipo === "profissional" ? rotulosProfissional[item.status] : rotulosCliente[item.status];
-  const pessoa = tipo === "profissional" ? item.cliente : item.profissional;
-  const voltarHref = tipo === "profissional" ? "solicitacoes-profissional.html" : "solicitacoes-cliente.html";
-
-  container.innerHTML = `
-    <a href="${voltarHref}" class="btn-texto"><span class="icone">arrow_back</span> Voltar</a>
-    <div class="cartao" style="margin-top: var(--espaco-4);">
-      <div class="card-solicitacao-meta" style="text-align:left; margin-bottom: var(--espaco-3);">
-        <span class="status-badge status-${item.status}">${rotulo}</span>
-      </div>
-      <h1 style="font-size: var(--texto-xl); margin-bottom: var(--espaco-1);">${item.servico}</h1>
-      <p class="pessoa">${tipo === "profissional" ? "Cliente" : "Profissional"}: ${pessoa}</p>
-      <p style="margin-top: var(--espaco-1); font-size: var(--texto-sm); color: var(--texto-secundario);">Data: ${item.data}</p>
-      <p style="margin-top: var(--espaco-3);">${item.resumo}</p>
-
-      <div class="acoes-etapa" id="acoesSolicitacaoDetalhe" style="margin-top: var(--espaco-5);"></div>
-      <p id="mensagemSolicitacaoDetalhe" class="mensagem-formulario" role="status"></p>
-    </div>
-  `;
-
-  const acoes = document.getElementById("acoesSolicitacaoDetalhe");
-  const mensagem = document.getElementById("mensagemSolicitacaoDetalhe");
-
-  function acao(texto, classe) {
-    const botao = document.createElement("button");
-    botao.type = "button";
-    botao.className = "btn " + classe;
-    botao.textContent = texto;
-    botao.addEventListener("click", function () {
-      mostrarMensagem(mensagem, "Ação registrada nesta demonstração — será conectada à API futuramente.", "sucesso");
-      acoes.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
-    });
-    acoes.appendChild(botao);
-  }
-
-  if (tipo === "cliente" && item.status === "andamento") acao("Cancelar solicitação", "btn-secundario");
-  if (tipo === "cliente" && item.status === "concluida") acao("Avaliar profissional", "btn-primario");
-  if (tipo === "profissional" && item.status === "nova") { acao("Recusar", "btn-secundario"); acao("Aceitar", "btn-primario"); }
-  if (tipo === "profissional" && (item.status === "aceita" || item.status === "andamento")) acao("Marcar como concluída", "btn-primario");
+  container.innerHTML = htmlEstadoVazio("inbox", "Detalhes indisponíveis: a API de solicitações ainda não está implementada.");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -521,38 +437,17 @@ async function configurarContaCliente() {
 function configurarDashboardProfissional() {
   const saudacao = document.getElementById("saudacaoProfissional");
   if (!saudacao) return;
-
-  saudacao.textContent = PROFISSIONAIS_MOCK[0].nome.split(" ")[0];
-
-  const contagens = { nova: 0, aceita: 0, andamento: 0, historico: 0 };
-  SOLICITACOES_PROFISSIONAL_MOCK.forEach(function (s) { contagens[s.status]++; });
-
-  document.getElementById("resumoNovas").textContent = contagens.nova;
-  document.getElementById("resumoAceitas").textContent = contagens.aceita;
-  document.getElementById("resumoAndamento").textContent = contagens.andamento;
-  document.getElementById("resumoConcluidas").textContent = contagens.historico;
-
-  const rotulosProfissional = { nova: "Nova", aceita: "Aceita", andamento: "Em andamento", historico: "Concluída" };
+  let usuario = null;
+  try { usuario = JSON.parse(sessionStorage.getItem("usuario") || "null"); } catch (_) {}
+  saudacao.textContent = usuario?.nome?.split(" ")[0] || "Profissional";
+  ["resumoNovas", "resumoAceitas", "resumoAndamento", "resumoConcluidas"].forEach(id => {
+    const elemento = document.getElementById(id);
+    if (elemento) elemento.textContent = "—";
+  });
   const listaRecentes = document.getElementById("listaSolicitacoesRecentes");
-  listaRecentes.innerHTML = SOLICITACOES_PROFISSIONAL_MOCK.slice(0, 3).map(function (s) {
-    return `
-      <a class="cartao card-solicitacao" href="solicitacao-detalhe.html?id=${s.id}&tipo=profissional">
-        <div>
-          <h3>${s.servico}</h3>
-          <p class="pessoa">para ${s.cliente}</p>
-        </div>
-        <div class="card-solicitacao-meta">
-          <span class="data">${s.data}</span>
-          <span class="status-badge status-${s.status}">${rotulosProfissional[s.status] || s.status}</span>
-        </div>
-      </a>
-    `;
-  }).join("");
-
+  if (listaRecentes) listaRecentes.innerHTML = htmlEstadoVazio("inbox", "Solicitações ainda não integradas à API.");
   const listaServicos = document.getElementById("listaMeusServicosResumo");
-  listaServicos.innerHTML = SERVICOS_PROFISSIONAL_MOCK.map(function (s) {
-    return `<span class="chip">${s}</span>`;
-  }).join("");
+  if (listaServicos) listaServicos.innerHTML = htmlEstadoVazio("handyman", "Serviços do profissional ainda não integrados à API.");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -563,7 +458,7 @@ function configurarServicosProfissional() {
   const listaAtuais = document.getElementById("listaServicosAtuais");
   if (!listaAtuais) return;
 
-  let servicosAtuais = SERVICOS_PROFISSIONAL_MOCK.slice();
+  let servicosAtuais = []; // Não exibir serviços fictícios como se fossem do usuário.
 
   function renderizarAtuais() {
     listaAtuais.innerHTML = servicosAtuais.length
@@ -574,8 +469,7 @@ function configurarServicosProfissional() {
 
     listaAtuais.querySelectorAll("[data-remover-servico]").forEach(function (botao) {
       botao.addEventListener("click", function () {
-        servicosAtuais = servicosAtuais.filter(function (s) { return s !== botao.dataset.removerServico; });
-        renderizarAtuais();
+        alert("A remoção de serviços do profissional ainda não está disponível na API.");
       });
     });
   }
@@ -598,9 +492,7 @@ function configurarServicosProfissional() {
 
     listaDisponiveis.querySelectorAll("[data-servico-disponivel]").forEach(function (botao) {
       botao.addEventListener("click", function () {
-        servicosAtuais.push(botao.dataset.servicoDisponivel);
-        renderizarAtuais();
-        seletorCategoria.dispatchEvent(new Event("change"));
+        alert("A vinculação de serviços ao profissional ainda não está disponível na API.");
       });
     });
   });
@@ -614,18 +506,15 @@ function configurarPerfilProfissionalEditar() {
   const formulario = document.getElementById("formPerfilProfissionalEditar");
   if (!formulario) return;
 
-  const p = PROFISSIONAIS_MOCK[0];
-  document.getElementById("editarNome").value = p.nome;
-  document.getElementById("editarDescricao").value = p.descricao;
-  document.getElementById("editarBiografia").value = p.biografia || "";
+  let usuario = null;
+  try { usuario = JSON.parse(sessionStorage.getItem("usuario") || "null"); } catch (_) {}
+  document.getElementById("editarNome").value = usuario?.nome || "";
   configurarContadorCaracteres("editarBiografia", "contadorEditarBiografia");
-  document.getElementById("editarExperiencia").value = p.experiencia;
-  document.getElementById("editarRegiao").value = p.regiao;
 
   formulario.addEventListener("submit", function (evento) {
     evento.preventDefault();
     const mensagem = document.getElementById("mensagemPerfilProfissionalEditar");
     // Integração futura: PUT /profissionais/:id (inclui "biografia")
-    mostrarMensagem(mensagem, "Perfil atualizado nesta demonstração.", "sucesso");
+    mostrarMensagem(mensagem, "Alteração não salva: a API de edição do perfil profissional ainda não está disponível.", "erro");
   });
 }

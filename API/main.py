@@ -252,6 +252,10 @@ def deletar_usuario(
 ):
     """O próprio usuário ou um administrador pode solicitar a exclusão."""
 
+    # Não permitir que o administrador apague a própria conta pelo painel.
+    if usuario_atual.tipo == "admin" and usuario_atual.id == usuario_id:
+        raise HTTPException(status_code=400, detail="Não é permitido excluir sua própria conta administrativa.")
+
     if not crud.get_usuario(db, usuario_id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -634,3 +638,109 @@ def deletar_servico(
         )
 
     return None
+
+# ============================================================
+# SOLICITAÇÕES — CLIENTES E PROFISSIONAIS
+# ============================================================
+
+from datetime import datetime, timezone
+
+
+def _solicitacao_permitida(item, usuario, db):
+    if usuario.tipo == "admin" or item.usuario_id == usuario.id:
+        return True
+    return bool(
+        db.query(models.Profissional.id)
+        .filter(
+            models.Profissional.id == item.profissional_id,
+            models.Profissional.usuario_id == usuario.id,
+        )
+        .first()
+    )
+
+
+@app.post("/solicitacoes", response_model=schemas.SolicitacaoOut, status_code=201)
+def criar_solicitacao(
+    dados: schemas.SolicitacaoCreate,
+    db: Session = Depends(get_db),
+    usuario=Depends(obter_usuario_atual),
+):
+    if usuario.tipo != "cliente":
+        raise HTTPException(status_code=403, detail="Somente clientes podem solicitar serviços.")
+    profissional = db.get(models.Profissional, dados.profissional_id)
+    if not profissional or not profissional.disponivel:
+        raise HTTPException(status_code=404, detail="Profissional indisponível ou não encontrado.")
+    if not db.get(models.Servico, dados.servico_id):
+        raise HTTPException(status_code=404, detail="Serviço não encontrado.")
+    item = models.Solicitacao(
+        usuario_id=usuario.id,
+        profissional_id=dados.profissional_id,
+        servico_id=dados.servico_id,
+        status="Pendente",
+        data=datetime.now(timezone.utc).isoformat(),
+    )
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@app.get("/solicitacoes", response_model=list[schemas.SolicitacaoOut])
+def listar_solicitacoes(
+    db: Session = Depends(get_db),
+    usuario=Depends(obter_usuario_atual),
+):
+    consulta = db.query(models.Solicitacao)
+    if usuario.tipo == "cliente":
+        consulta = consulta.filter(models.Solicitacao.usuario_id == usuario.id)
+    elif usuario.tipo == "profissional":
+        consulta = consulta.join(models.Profissional).filter(
+            models.Profissional.usuario_id == usuario.id
+        )
+    elif usuario.tipo != "admin":
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+    return consulta.order_by(models.Solicitacao.id.desc()).all()
+
+
+@app.get("/solicitacoes/{solicitacao_id}", response_model=schemas.SolicitacaoOut)
+def buscar_solicitacao(
+    solicitacao_id: int,
+    db: Session = Depends(get_db),
+    usuario=Depends(obter_usuario_atual),
+):
+    item = db.get(models.Solicitacao, solicitacao_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Solicitação não encontrada.")
+    if not _solicitacao_permitida(item, usuario, db):
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+    return item
+
+
+@app.patch("/solicitacoes/{solicitacao_id}/status", response_model=schemas.SolicitacaoOut)
+def atualizar_status_solicitacao(
+    solicitacao_id: int,
+    dados: schemas.SolicitacaoStatusUpdate,
+    db: Session = Depends(get_db),
+    usuario=Depends(obter_usuario_atual),
+):
+    item = db.get(models.Solicitacao, solicitacao_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Solicitação não encontrada.")
+    if not _solicitacao_permitida(item, usuario, db):
+        raise HTTPException(status_code=403, detail="Acesso negado.")
+    eh_cliente = item.usuario_id == usuario.id and usuario.tipo == "cliente"
+    if eh_cliente:
+        permitido = dados.status == "Cancelada" and item.status == "Pendente"
+    elif usuario.tipo == "profissional":
+        permitido = (
+            (dados.status in ("Aceita", "Recusada") and item.status == "Pendente")
+            or (dados.status == "Concluída" and item.status == "Aceita")
+        )
+    else:
+        permitido = False
+    if not permitido:
+        raise HTTPException(status_code=409, detail="Transição de status não permitida.")
+    item.status = dados.status
+    db.commit()
+    db.refresh(item)
+    return item

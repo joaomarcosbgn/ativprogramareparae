@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 import models
 import schemas
@@ -15,7 +15,7 @@ def get_usuario(db: Session, usuario_id: int) -> models.Usuario | None:
 
 
 def get_usuario_por_email(db: Session, email: str) -> models.Usuario | None:
-    return db.query(models.Usuario).filter(models.Usuario.email == email).first()
+    return db.query(models.Usuario).filter(func.lower(models.Usuario.email) == email.strip().lower()).first()
 
 
 def listar_usuarios(
@@ -38,7 +38,7 @@ def criar_usuario(
     try:
         db_usuario = models.Usuario(
             nome=usuario.nome,
-            email=usuario.email,
+            email=str(usuario.email).strip().lower(),
             senha=hash_senha(usuario.senha),
             tipo=usuario.tipo,
         )
@@ -77,6 +77,9 @@ def atualizar_usuario(
 
     dados_dict = dados.model_dump(exclude_unset=True, exclude_none=True)
     dados_dict.pop("tipo", None)  # O tipo não muda pelo CRUD comum.
+
+    if "email" in dados_dict:
+        dados_dict["email"] = str(dados_dict["email"]).strip().lower()
 
     if "senha" in dados_dict:
         dados_dict["senha"] = hash_senha(dados_dict["senha"])

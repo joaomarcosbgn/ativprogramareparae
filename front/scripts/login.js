@@ -83,7 +83,9 @@ function configurarFormularioLogin() {
       );
 
       setTimeout(function () {
-      if (usuario.tipo === "profissional") {
+      if (usuario.tipo === "admin") {
+      window.location.href = "admin.html";
+      } else if (usuario.tipo === "profissional") {
       window.location.href = "dashboard-profissional.html";
       } else {
       window.location.href = "home-cliente.html";
