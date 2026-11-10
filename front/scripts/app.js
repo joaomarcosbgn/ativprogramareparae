@@ -7,6 +7,12 @@
 // ==========================================================================
 
 document.addEventListener("DOMContentLoaded", function () {
+    const token = sessionStorage.getItem("token");
+
+  if (!token) {
+    window.location.replace("login.html");
+    return;
+  }
   const tipoUsuario = document.body.dataset.tipoUsuario;
   const paginaAtiva = document.body.dataset.pagina;
   if (tipoUsuario && paginaAtiva && typeof renderizarNavegacao === "function") {
