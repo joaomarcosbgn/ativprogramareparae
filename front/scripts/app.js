@@ -252,53 +252,105 @@ function configurarBusca() {
   if (!formulario) return;
   const campo = document.getElementById("campoBuscaResultados");
   const filtro = document.getElementById("filtroCategoria");
+  const regiao = document.getElementById("filtroRegiao");
+  const ordenar = document.getElementById("ordenarProfissionais");
+  const limpar = document.getElementById("limparFiltros");
   const resultados = document.getElementById("resultadosBusca");
+  const resumo = document.getElementById("resumoBusca");
+  const chips = document.getElementById("chipsCategorias");
+  const paginacao = document.getElementById("paginacaoBusca");
+  const porPagina = 6;
   const parametros = new URLSearchParams(location.search);
   campo.value = parametros.get("q") || "";
+  regiao.value = parametros.get("regiao") || "";
+  const ordensValidas = [...ordenar.options].map(o => o.value);
+  ordenar.value = ordensValidas.includes(parametros.get("ordenar")) ? parametros.get("ordenar") : "nome_asc";
   const categoriaURL = parametros.get("categoria") || "";
-  const chips = document.getElementById("chipsCategorias");
   let especialidades = [];
+  let requisicao = 0;
+  const paginaURL = Number(parametros.get("pagina"));
+  let paginaAtual = Number.isSafeInteger(paginaURL) && paginaURL > 0 ? paginaURL : 1;
+
   function renderizarChips() {
     if (!chips) return;
-    chips.innerHTML = '<button type="button" class="chip' + (!filtro.value ? ' ativo' : '') + '" data-cat="">Todos</button>' +
-      especialidades.map(nome => `<button type="button" class="chip${filtro.value === nome ? " ativo" : ""}" data-cat="${escaparHtml(nome)}">${escaparHtml(nome)}</button>`).join("");
-  }
-  if (chips) chips.addEventListener("click", e => {
-    const botao = e.target.closest("[data-cat]");
-    if (!botao) return;
-    filtro.value = botao.dataset.cat;
-    renderizarChips();
-    executarBusca();
-  });
-  async function carregarEspecialidades() {
-    try {
-      const resposta = await fetch(`${API_BASE_URL}/profissionais?limit=100`);
-      if (!resposta.ok) throw new Error("Falha ao carregar especialidades");
-      const profissionais = await resposta.json();
-      especialidades = [...new Set(profissionais.map(p => String(p.especialidade || "").trim()).filter(Boolean))].sort();
-      filtro.replaceChildren();
-      const todos = document.createElement("option"); todos.value = ""; todos.textContent = "Todas as especialidades"; filtro.append(todos);
-      especialidades.forEach(nome => { const option = document.createElement("option"); option.value = nome; option.textContent = nome; filtro.append(option); });
-      const categoriaAntiga = CATEGORIAS.find(c => String(c.id) === categoriaURL);
-      const selecionada = categoriaAntiga?.nome || categoriaURL;
-      if (especialidades.includes(selecionada)) filtro.value = selecionada;
-      renderizarChips();
-    } catch (_) {
-      filtro.innerHTML = '<option value="">Todas as especialidades</option>';
-      renderizarChips();
+    chips.replaceChildren();
+    for (const nome of ["", ...especialidades]) {
+      const botao = document.createElement("button");
+      botao.type = "button";
+      botao.className = "chip" + (filtro.value === nome ? " ativo" : "");
+      botao.dataset.cat = nome;
+      botao.textContent = nome || "Todos";
+      chips.append(botao);
     }
-    executarBusca();
   }
-  let requisicao = 0;
+  function atualizarURL() {
+    const url = new URL(location.href);
+    for (const [chave, valor] of Object.entries({q: campo.value.trim(), categoria: filtro.value, regiao: regiao.value.trim(), ordenar: ordenar.value})) {
+      if (valor && !(chave === "ordenar" && valor === "nome_asc")) url.searchParams.set(chave, valor);
+      else url.searchParams.delete(chave);
+    }
+    if (paginaAtual > 1) url.searchParams.set("pagina", String(paginaAtual));
+    else url.searchParams.delete("pagina");
+    history.replaceState(null, "", url.pathname + url.search + url.hash);
+  }
+  function renderizarPaginacao(totalPaginas) {
+    if (!paginacao) return;
+    paginacao.replaceChildren();
+    paginacao.hidden = totalPaginas <= 1;
+    if (totalPaginas <= 1) return;
+
+    function botao(rotulo, pagina, desabilitado = false, atual = false) {
+      const elemento = document.createElement("button");
+      elemento.type = "button";
+      elemento.className = "btn btn-secundario" + (atual ? " pagina-ativa" : "");
+      elemento.textContent = rotulo;
+      elemento.disabled = desabilitado;
+      if (atual) elemento.setAttribute("aria-current", "page");
+      elemento.addEventListener("click", () => {
+        paginaAtual = pagina;
+        executarBusca();
+      });
+      paginacao.append(elemento);
+    }
+    botao("Anterior", paginaAtual - 1, paginaAtual <= 1);
+    const inicio = Math.max(1, Math.min(paginaAtual - 2, totalPaginas - 4));
+    const fim = Math.min(totalPaginas, inicio + 4);
+    for (let numero = inicio; numero <= fim; numero++) {
+      botao(String(numero), numero, numero === paginaAtual, numero === paginaAtual);
+    }
+    botao("Próxima", paginaAtual + 1, paginaAtual >= totalPaginas);
+  }
+
   async function executarBusca() {
     const atual = ++requisicao;
-    const params = new URLSearchParams({ q: campo.value.trim(), categoria: filtro.value, limit: "100" });
+    atualizarURL();
+    const params = new URLSearchParams({
+      q: campo.value.trim(), categoria: filtro.value, regiao: regiao.value.trim(),
+      ordenar: ordenar.value, pagina: String(paginaAtual), por_pagina: String(porPagina)
+    });
     resultados.textContent = "Buscando profissionais cadastrados...";
+    resumo.textContent = "Consultando profissionais...";
+    if (paginacao) paginacao.hidden = true;
     try {
-      const resposta = await fetch(`${API_BASE_URL}/profissionais?${params}`);
-      if (!resposta.ok) throw new Error("Não foi possível consultar os profissionais.");
-      const profissionais = await resposta.json();
+      const resposta = await fetch(`${API_BASE_URL}/profissionais/paginados?${params}`);
+      if (!resposta.ok) throw new Error("Falha ao consultar profissionais.");
+      const dados = await resposta.json();
+      if (!dados || !Array.isArray(dados.itens) || !Number.isInteger(dados.total) || !Number.isInteger(dados.total_paginas)) {
+        throw new Error("Resposta inesperada da API.");
+      }
       if (atual !== requisicao) return;
+      // Uma URL antiga pode apontar para uma página que deixou de existir.
+      if (dados.total_paginas > 0 && paginaAtual > dados.total_paginas) {
+        paginaAtual = dados.total_paginas;
+        return executarBusca();
+      }
+      if (dados.total_paginas === 0 && paginaAtual !== 1) {
+        paginaAtual = 1;
+        atualizarURL();
+      }
+      const profissionais = dados.itens;
+      resumo.textContent = dados.total === 0 ? "0 profissionais encontrados" :
+        `${dados.total} ${dados.total === 1 ? "profissional encontrado" : "profissionais encontrados"} — Página ${paginaAtual} de ${dados.total_paginas}`;
       resultados.innerHTML = profissionais.length ? profissionais.map(p => `
         <article class="cartao card-profissional">
           <div class="midia-corpo">
@@ -307,18 +359,55 @@ function configurarBusca() {
               <div class="card-profissional-nome"><strong>${escaparHtml(p.nome)}</strong>
                 <span>${escaparHtml(p.especialidade)}</span></div>
             </div>
-            <p class="descricao">Profissional cadastrado no Reparaê</p>
+            <p class="descricao">${escaparHtml(p.regiao || "Região não informada")}</p>
             <div class="card-profissional-acoes">
               <a class="btn btn-secundario" href="perfil-profissional.html?id=${encodeURIComponent(p.id)}">Ver perfil</a>
             </div>
           </div>
-        </article>`).join("") : htmlEstadoVazio("search_off", "Nenhum profissional cadastrado encontrado.");
-    } catch (erro) {
-      if (atual === requisicao) resultados.textContent = "Não foi possível carregar profissionais. Verifique se a API está funcionando.";
+        </article>`).join("") : htmlEstadoVazio("search_off", "Nenhum profissional encontrado para os filtros escolhidos.");
+      renderizarPaginacao(dados.total_paginas);
+    } catch (_) {
+      if (atual === requisicao) {
+        resumo.textContent = "Não foi possível consultar os profissionais.";
+        resultados.textContent = "Verifique sua conexão e se a API está funcionando.";
+        if (paginacao) paginacao.hidden = true;
+      }
     }
   }
-  formulario.addEventListener("submit", e => { e.preventDefault(); executarBusca(); });
-  filtro.addEventListener("change", () => { renderizarChips(); executarBusca(); });
+  async function carregarEspecialidades() {
+    try {
+      const resposta = await fetch(`${API_BASE_URL}/profissionais?limit=100`);
+      if (!resposta.ok) throw new Error("Falha ao carregar especialidades");
+      const profissionais = await resposta.json();
+      especialidades = [...new Set(profissionais.map(p => String(p.especialidade || "").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+      filtro.replaceChildren();
+      const todos = document.createElement("option"); todos.value = ""; todos.textContent = "Todas as especialidades"; filtro.append(todos);
+      especialidades.forEach(nome => {const option = document.createElement("option"); option.value = nome; option.textContent = nome; filtro.append(option);});
+      const antiga = typeof CATEGORIAS !== "undefined" ? CATEGORIAS.find(c => String(c.id) === categoriaURL) : null;
+      const selecionada = antiga?.nome || categoriaURL;
+      if (especialidades.includes(selecionada)) filtro.value = selecionada;
+    } catch (_) {
+      filtro.innerHTML = '<option value="">Todas as especialidades</option>';
+    }
+    renderizarChips();
+    executarBusca();
+  }
+  function reiniciarBusca() { paginaAtual = 1; executarBusca(); }
+  chips?.addEventListener("click", e => {
+    const botao = e.target.closest("[data-cat]");
+    if (!botao) return;
+    filtro.value = botao.dataset.cat;
+    renderizarChips();
+    reiniciarBusca();
+  });
+  formulario.addEventListener("submit", e => { e.preventDefault(); reiniciarBusca(); });
+  filtro.addEventListener("change", () => {renderizarChips(); reiniciarBusca();});
+  ordenar.addEventListener("change", reiniciarBusca);
+  regiao.addEventListener("change", reiniciarBusca);
+  limpar.addEventListener("click", () => {
+    campo.value = ""; filtro.value = ""; regiao.value = ""; ordenar.value = "nome_asc";
+    renderizarChips(); reiniciarBusca();
+  });
   carregarEspecialidades();
 }
 

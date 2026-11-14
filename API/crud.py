@@ -303,7 +303,8 @@ def _profissional_publico(profissional, db):
     }
 
 
-def pesquisar_profissionais(db, q="", categoria="", skip=0, limit=50):
+def _consulta_profissionais_filtrada(db, q="", categoria="", regiao=""):
+    """Consulta compartilhada para resultados e contagem, sem divergir filtros."""
     consulta = (db.query(models.Profissional)
                 .join(models.Usuario)
                 .filter(models.Profissional.disponivel == 1,
@@ -314,7 +315,28 @@ def pesquisar_profissionais(db, q="", categoria="", skip=0, limit=50):
                                        models.Profissional.especialidade.ilike(termo)))
     if categoria.strip():
         consulta = consulta.filter(models.Profissional.especialidade.ilike(categoria.strip()))
-    return [_profissional_publico(p, db) for p in consulta.order_by(models.Usuario.nome, models.Profissional.id).offset(skip).limit(limit).all()]
+    if regiao.strip():
+        consulta = (consulta.join(models.PerfilProfissionalExtra,
+                                 models.PerfilProfissionalExtra.profissional_id == models.Profissional.id)
+                    .filter(models.PerfilProfissionalExtra.regiao.ilike(f"%{regiao.strip()}%")))
+    return consulta
+
+
+def contar_profissionais(db, q="", categoria="", regiao=""):
+    """Total de profissionais que correspondem aos filtros, antes da paginação."""
+    return _consulta_profissionais_filtrada(db, q, categoria, regiao).count()
+
+
+def pesquisar_profissionais(db, q="", categoria="", regiao="", ordenar="nome_asc", skip=0, limit=50):
+    """Filtra, ordena e pagina profissionais disponíveis diretamente no banco."""
+    consulta = _consulta_profissionais_filtrada(db, q, categoria, regiao)
+    ordens = {
+        "nome_asc": (models.Usuario.nome.asc(), models.Profissional.id.asc()),
+        "nome_desc": (models.Usuario.nome.desc(), models.Profissional.id.asc()),
+        "especialidade_asc": (models.Profissional.especialidade.asc(), models.Usuario.nome.asc(), models.Profissional.id.asc()),
+        "especialidade_desc": (models.Profissional.especialidade.desc(), models.Usuario.nome.asc(), models.Profissional.id.asc()),
+    }
+    return [_profissional_publico(p, db) for p in consulta.order_by(*ordens.get(ordenar, ordens["nome_asc"])).offset(skip).limit(limit).all()]
 
 
 def obter_profissional_publico(db, profissional_id):

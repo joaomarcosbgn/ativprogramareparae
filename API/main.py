@@ -334,14 +334,54 @@ def login(
 def pesquisar_profissionais(
     q: str = "",
     categoria: str = "",
+    regiao: str = "",
+    ordenar: str = "nome_asc",
     skip: int = 0,
     limit: int = 50,
     db: Session = Depends(get_db),
 ):
-    """Consulta apenas profissionais cadastrados e disponíveis."""
+    """Consulta profissionais reais com filtros e ordenação."""
     if skip < 0 or not 1 <= limit <= 100:
         raise HTTPException(status_code=400, detail="Use skip >= 0 e limit entre 1 e 100.")
-    return crud.pesquisar_profissionais(db, q=q, categoria=categoria, skip=skip, limit=limit)
+    if ordenar not in ("nome_asc", "nome_desc", "especialidade_asc", "especialidade_desc"):
+        raise HTTPException(status_code=400, detail="Ordenação inválida.")
+    return crud.pesquisar_profissionais(db, q=q, categoria=categoria, regiao=regiao, ordenar=ordenar, skip=skip, limit=limit)
+
+
+@app.get("/profissionais/total")
+def contar_profissionais(q: str = "", categoria: str = "", regiao: str = "", db: Session = Depends(get_db)):
+    """Total de profissionais que correspondem aos filtros, sem limite de página."""
+    return {"total": crud.pesquisar_profissionais(db, q=q, categoria=categoria, regiao=regiao, contar=True)}
+
+
+@app.get("/profissionais/paginados")
+def listar_profissionais_paginados(
+    q: str = "",
+    categoria: str = "",
+    regiao: str = "",
+    ordenar: str = "nome_asc",
+    pagina: int = 1,
+    por_pagina: int = 9,
+    db: Session = Depends(get_db),
+):
+    """Busca paginada com total real, mantendo /profissionais compatível."""
+    if pagina < 1 or not 1 <= por_pagina <= 100:
+        raise HTTPException(status_code=400, detail="Use pagina >= 1 e por_pagina entre 1 e 100.")
+    if ordenar not in ("nome_asc", "nome_desc", "especialidade_asc", "especialidade_desc"):
+        raise HTTPException(status_code=400, detail="Ordenação inválida.")
+    total = crud.contar_profissionais(db, q=q, categoria=categoria, regiao=regiao)
+    total_paginas = (total + por_pagina - 1) // por_pagina
+    itens = crud.pesquisar_profissionais(
+        db, q=q, categoria=categoria, regiao=regiao, ordenar=ordenar,
+        skip=(pagina - 1) * por_pagina, limit=por_pagina,
+    )
+    return {
+        "itens": itens,
+        "total": total,
+        "pagina": pagina,
+        "por_pagina": por_pagina,
+        "total_paginas": total_paginas,
+    }
 
 
 @app.get("/profissionais/{profissional_id}", response_model=schemas.ProfissionalBuscaOut)

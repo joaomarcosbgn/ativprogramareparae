@@ -887,3 +887,17 @@ body.corpo-app {
 .linha-2-colunas > * { min-width: 0; }
 .campo > .icone { width: 1.2em; height: 1.2em; flex-shrink: 0; }
 .campo input { min-width: 0; }
+
+/* Busca de profissionais: filtros responsivos e acessíveis */
+.filtros-busca { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-top: 16px; }
+.filtros-busca label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; color: var(--branco); flex: 1 1 190px; }
+.filtros-busca input, .filtros-busca select { width: 100%; min-height: 42px; padding: 9px 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; color: #172b4d; font: inherit; }
+.filtros-busca .btn { min-height: 42px; }
+#resumoBusca { margin-bottom: 14px; }
+
+/* Navegação entre páginas de resultados da busca */
+.paginacao-busca { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin: 28px 0 12px; }
+.paginacao-busca[hidden] { display: none; }
+.paginacao-busca .btn { min-width: 42px; min-height: 42px; padding: 8px 12px; }
+.paginacao-busca .pagina-ativa { background: var(--azul-principal, #1976d2); color: #fff; border-color: transparent; }
+.paginacao-busca .btn:disabled { opacity: .5; cursor: not-allowed; }

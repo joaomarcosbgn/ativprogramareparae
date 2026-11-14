@@ -34,16 +34,31 @@
 
         <div class="chips-categorias" id="chipsCategorias" aria-label="Categorias"></div>
         <div class="filtro-oculto">
-          <label for="filtroCategoria">Categoria</label>
+          <label for="filtroCategoria">Especialidade</label>
           <select id="filtroCategoria"></select>
+        </div>
+        <div class="filtros-busca" aria-label="Filtros e ordenação">
+          <label for="filtroRegiao">Região
+            <input id="filtroRegiao" type="search" placeholder="Ex.: Fortaleza" autocomplete="off">
+          </label>
+          <label for="ordenarProfissionais">Ordenar por
+            <select id="ordenarProfissionais">
+              <option value="nome_asc">Nome (A–Z)</option>
+              <option value="nome_desc">Nome (Z–A)</option>
+              <option value="especialidade_asc">Especialidade (A–Z)</option>
+              <option value="especialidade_desc">Especialidade (Z–A)</option>
+            </select>
+          </label>
+          <button type="button" class="btn btn-secundario" id="limparFiltros">Limpar filtros</button>
         </div>
       </div>
     </section>
 
     <section class="secao-app">
       <div class="container">
-        <p class="aviso-mock"><span class="icone">info</span> Resultados de demonstração.</p>
+        <p id="resumoBusca" role="status" aria-live="polite">Carregando profissionais cadastrados...</p>
         <div class="grade-cards" id="resultadosBusca"></div>
+        <nav id="paginacaoBusca" class="paginacao-busca" aria-label="Páginas de profissionais" hidden></nav>
       </div>
     </section>
   </main>
