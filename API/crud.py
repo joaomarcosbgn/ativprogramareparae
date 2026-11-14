@@ -290,7 +290,8 @@ def deletar_servico(
 # PROFISSIONAIS REAIS (PESQUISA PÚBLICA)
 # ============================================================
 
-def _profissional_publico(profissional):
+def _profissional_publico(profissional, db):
+    extra = db.get(models.PerfilProfissionalExtra, profissional.id)
     return {
         "id": profissional.id,
         "usuario_id": profissional.usuario_id,
@@ -298,6 +299,7 @@ def _profissional_publico(profissional):
         "especialidade": profissional.especialidade,
         "telefone": profissional.telefone,
         "disponivel": profissional.disponivel,
+        **{campo: getattr(extra, campo, "") if extra else "" for campo in ("descricao", "biografia", "experiencia", "regiao")},
     }
 
 
@@ -312,7 +314,7 @@ def pesquisar_profissionais(db, q="", categoria="", skip=0, limit=50):
                                        models.Profissional.especialidade.ilike(termo)))
     if categoria.strip():
         consulta = consulta.filter(models.Profissional.especialidade.ilike(categoria.strip()))
-    return [_profissional_publico(p) for p in consulta.order_by(models.Usuario.nome, models.Profissional.id).offset(skip).limit(limit).all()]
+    return [_profissional_publico(p, db) for p in consulta.order_by(models.Usuario.nome, models.Profissional.id).offset(skip).limit(limit).all()]
 
 
 def obter_profissional_publico(db, profissional_id):
@@ -320,4 +322,4 @@ def obter_profissional_publico(db, profissional_id):
          .filter(models.Profissional.id == profissional_id,
                  models.Profissional.disponivel == 1,
                  models.Usuario.tipo == "profissional").first())
-    return _profissional_publico(p) if p else None
+    return _profissional_publico(p, db) if p else None

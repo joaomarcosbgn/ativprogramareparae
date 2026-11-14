@@ -257,6 +257,10 @@ class ProfissionalBuscaOut(BaseModel):
     especialidade: str
     telefone: str
     disponivel: int
+    descricao: str = ""
+    biografia: str = ""
+    experiencia: str = ""
+    regiao: str = ""
 
 # ---------- SOLICITAÇÕES ----------
 

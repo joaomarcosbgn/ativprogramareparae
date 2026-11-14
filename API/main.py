@@ -29,7 +29,12 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://127.0.0.1:5500",
+        "http://localhost:5500",
+        "http://127.0.0.1:5501",
+        "http://localhost:5501",
+    ],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -672,6 +677,10 @@ def criar_solicitacao(
         raise HTTPException(status_code=404, detail="Profissional indisponível ou não encontrado.")
     if not db.get(models.Servico, dados.servico_id):
         raise HTTPException(status_code=404, detail="Serviço não encontrado.")
+    # Compatibilidade: profissionais antigos sem vínculos ainda podem receber solicitações.
+    vinculos = db.query(models.ProfissionalServico).filter_by(profissional_id=profissional.id).count()
+    if vinculos and not db.get(models.ProfissionalServico, (profissional.id, dados.servico_id)):
+        raise HTTPException(status_code=400, detail="O profissional não oferece esse serviço.")
     item = models.Solicitacao(
         usuario_id=usuario.id,
         profissional_id=dados.profissional_id,
@@ -744,3 +753,80 @@ def atualizar_status_solicitacao(
     db.commit()
     db.refresh(item)
     return item
+
+
+# ============================================================
+# INTEGRAÇÃO DO PAINEL PROFISSIONAL
+# ============================================================
+from pydantic import BaseModel, Field
+
+class PerfilExtraEntrada(BaseModel):
+    nome: str = Field(min_length=2, max_length=100)
+    descricao: str = Field(default="", max_length=1000)
+    biografia: str = Field(default="", max_length=500)
+    experiencia: str = Field(default="", max_length=150)
+    regiao: str = Field(default="", max_length=150)
+
+
+def _meu_profissional(db, usuario):
+    if usuario.tipo != "profissional":
+        raise HTTPException(status_code=403, detail="Apenas profissionais podem acessar este recurso.")
+    profissional = db.query(models.Profissional).filter(models.Profissional.usuario_id == usuario.id).first()
+    if not profissional:
+        raise HTTPException(status_code=404, detail="Cadastro profissional não encontrado.")
+    return profissional
+
+
+@app.get("/me/profissional")
+def meu_perfil_profissional(db: Session = Depends(get_db), usuario=Depends(obter_usuario_atual)):
+    profissional = _meu_profissional(db, usuario)
+    extra = db.get(models.PerfilProfissionalExtra, profissional.id)
+    return {"id": profissional.id, "usuario_id": usuario.id, "nome": usuario.nome,
+            "especialidade": profissional.especialidade, "telefone": profissional.telefone,
+            "disponivel": profissional.disponivel,
+            **{campo: getattr(extra, campo, "") if extra else "" for campo in ("descricao", "biografia", "experiencia", "regiao")}}
+
+
+@app.put("/me/profissional")
+def editar_meu_perfil_profissional(dados: PerfilExtraEntrada, db: Session = Depends(get_db), usuario=Depends(obter_usuario_atual)):
+    profissional = _meu_profissional(db, usuario)
+    usuario.nome = dados.nome.strip()
+    extra = db.get(models.PerfilProfissionalExtra, profissional.id)
+    if extra is None:
+        extra = models.PerfilProfissionalExtra(profissional_id=profissional.id)
+        db.add(extra)
+    for campo in ("descricao", "biografia", "experiencia", "regiao"):
+        setattr(extra, campo, getattr(dados, campo).strip())
+    db.commit()
+    return meu_perfil_profissional(db, usuario)
+
+
+@app.get("/me/servicos", response_model=list[schemas.ServicoOut])
+def meus_servicos(db: Session = Depends(get_db), usuario=Depends(obter_usuario_atual)):
+    profissional = _meu_profissional(db, usuario)
+    return db.query(models.Servico).join(models.ProfissionalServico,
+        models.ProfissionalServico.servico_id == models.Servico.id).filter(
+        models.ProfissionalServico.profissional_id == profissional.id).order_by(models.Servico.nome).all()
+
+
+@app.post("/me/servicos/{servico_id}", status_code=201)
+def vincular_meu_servico(servico_id: int, db: Session = Depends(get_db), usuario=Depends(obter_usuario_atual)):
+    profissional = _meu_profissional(db, usuario)
+    if not db.get(models.Servico, servico_id):
+        raise HTTPException(status_code=404, detail="Serviço não encontrado.")
+    vinculo = db.get(models.ProfissionalServico, (profissional.id, servico_id))
+    if vinculo:
+        raise HTTPException(status_code=409, detail="Serviço já vinculado.")
+    db.add(models.ProfissionalServico(profissional_id=profissional.id, servico_id=servico_id))
+    db.commit()
+    return {"mensagem": "Serviço vinculado", "servico_id": servico_id}
+
+
+@app.delete("/me/servicos/{servico_id}", status_code=204)
+def desvincular_meu_servico(servico_id: int, db: Session = Depends(get_db), usuario=Depends(obter_usuario_atual)):
+    profissional = _meu_profissional(db, usuario)
+    vinculo = db.get(models.ProfissionalServico, (profissional.id, servico_id))
+    if not vinculo:
+        raise HTTPException(status_code=404, detail="Vínculo não encontrado.")
+    db.delete(vinculo)
+    db.commit()

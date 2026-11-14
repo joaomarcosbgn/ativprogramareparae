@@ -83,16 +83,57 @@ function htmlCardProfissional(p) {
 function configurarBotoesSolicitar(container) {
   container.querySelectorAll("[data-solicitar]").forEach(function (botao) {
     botao.addEventListener("click", function () {
-      botao.textContent = "Solicitado ✓";
-      botao.disabled = true;
-      // Integração futura: POST /solicitacoes { profissionalId, clienteId, servico }
+      window.location.href = `perfil-profissional.html?id=${encodeURIComponent(botao.dataset.solicitar)}`;
     });
   });
-
   container.querySelectorAll(".favorito").forEach(function (botao) {
-    botao.addEventListener("click", function () {
-      botao.classList.toggle("ativo");
-    });
+    botao.addEventListener("click", function () { botao.classList.toggle("ativo"); });
+  });
+}
+
+async function requisicaoAutenticada(caminho, opcoes = {}) {
+  const token = sessionStorage.getItem("token");
+  if (!token) throw new Error("Sua sessão expirou. Faça login novamente.");
+  const resposta = await fetch(`${API_BASE_URL}${caminho}`, {
+    ...opcoes,
+    headers: { "Authorization": `Bearer ${token}`, ...(opcoes.body ? { "Content-Type": "application/json" } : {}), ...opcoes.headers }
+  });
+  const dados = await resposta.json().catch(() => null);
+  if (!resposta.ok) {
+    const detalhe = dados?.detail;
+    throw new Error(typeof detalhe === "string" ? detalhe : `Falha na operação (${resposta.status}).`);
+  }
+  return dados;
+}
+
+function escaparSolicitacao(valor) {
+  return String(valor ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+async function escolherServicoSolicitacao(profissionalId, botao) {
+  let usuario = null;
+  try { usuario = JSON.parse(sessionStorage.getItem("usuario") || "null"); } catch (_) {}
+  if (usuario?.tipo !== "cliente") { alert("Entre com uma conta de cliente para solicitar serviços."); return; }
+  const servicos = await fetch(`${API_BASE_URL}/servicos?limit=100`).then(async r => {
+    if (!r.ok) throw new Error("Não foi possível carregar os serviços disponíveis.");
+    return r.json();
+  });
+  if (!servicos.length) throw new Error("Ainda não há serviços cadastrados.");
+  const painel = document.createElement("div");
+  painel.className = "cartao";
+  painel.style.cssText = "padding:16px;margin-top:16px";
+  painel.innerHTML = `<label for="servicoSolicitacao">Escolha o serviço desejado</label><select id="servicoSolicitacao" style="width:100%;margin:12px 0;padding:10px"><option value="">Selecione...</option>${servicos.map(s => `<option value="${s.id}">${escaparSolicitacao(s.nome)} — R$ ${Number(s.preco).toFixed(2)}</option>`).join("")}</select><button type="button" class="btn btn-primario" id="confirmarSolicitacao">Confirmar solicitação</button><p id="erroSolicitacao" role="alert"></p>`;
+  botao.insertAdjacentElement("afterend", painel);
+  botao.disabled = true;
+  painel.querySelector("#confirmarSolicitacao").addEventListener("click", async () => {
+    const servico_id = Number(painel.querySelector("#servicoSolicitacao").value);
+    if (!servico_id) { painel.querySelector("#erroSolicitacao").textContent = "Escolha um serviço."; return; }
+    const confirmar = painel.querySelector("#confirmarSolicitacao");
+    confirmar.disabled = true;
+    try {
+      const item = await requisicaoAutenticada("/solicitacoes", { method: "POST", body: JSON.stringify({ profissional_id: profissionalId, servico_id }) });
+      window.location.href = `solicitacao-detalhe.html?id=${item.id}`;
+    } catch (erro) { painel.querySelector("#erroSolicitacao").textContent = erro.message; confirmar.disabled = false; }
   });
 }
 
@@ -300,19 +341,42 @@ async function configurarPerfilProfissionalPublico() {
     document.getElementById("perfilNome").textContent = p.nome;
     document.getElementById("perfilServico").textContent = p.especialidade;
     document.getElementById("perfilAvatar").textContent = iniciaisDoNome(p.nome);
-    document.getElementById("perfilDescricao").textContent = "Profissional cadastrado no Reparaê.";
+    // Dados públicos recebidos da API (não utilizar dados privados da sessão).
+    const descricao = String(p.descricao || p.biografia || "").trim();
+    const biografia = String(p.biografia || "").trim();
+    const experienciaTexto = String(p.experiencia || "").trim();
+    const regiao = String(p.regiao || "").trim();
+    document.getElementById("perfilDescricao").textContent = descricao || "Informações profissionais ainda não cadastradas.";
     const avaliacao = document.getElementById("perfilAvaliacao");
     if (avaliacao) avaliacao.textContent = "Ainda sem avaliações";
     const experiencia = document.getElementById("perfilExperiencia");
-    if (experiencia) experiencia.textContent = "Não informada";
+    if (experiencia) experiencia.textContent = experienciaTexto || "Não informada";
     const stats = document.getElementById("perfilStats");
-    if (stats) stats.textContent = "Informações adicionais ainda não cadastradas.";
+    if (stats) stats.textContent = regiao ? `Região de atendimento: ${regiao}` : "Região de atendimento não informada.";
     const sobre = document.getElementById("secaoSobreMim");
-    if (sobre) sobre.hidden = true;
+    if (sobre) {
+      sobre.hidden = !biografia;
+      // Mantém a estrutura do HTML e insere o texto em um parágrafo próprio.
+      let textoSobre = sobre.querySelector("[data-biografia-publica]");
+      if (biografia && !textoSobre) {
+        textoSobre = document.createElement("p");
+        textoSobre.dataset.biografiaPublica = "";
+        sobre.appendChild(textoSobre);
+      }
+      if (textoSobre) textoSobre.textContent = biografia;
+    }
     const portfolio = document.getElementById("secaoPortfolio");
     if (portfolio) portfolio.hidden = true;
     const solicitar = document.getElementById("botaoSolicitarPerfil");
-    if (solicitar) { solicitar.disabled = true; solicitar.title = "Solicitações ainda não estão disponíveis"; }
+    if (solicitar) {
+      solicitar.disabled = !p.disponivel;
+      solicitar.title = p.disponivel ? "Solicitar serviço" : "Profissional indisponível";
+      solicitar.addEventListener("click", async () => {
+        if (solicitar.disabled) return;
+        try { await escolherServicoSolicitacao(p.id, solicitar); }
+        catch (erro) { alert(erro.message); }
+      });
+    }
     const avaliacoes = document.getElementById("gradeAvaliacoesPerfil");
     if (avaliacoes) avaliacoes.textContent = "Nenhuma avaliação registrada.";
   } catch (erro) {
@@ -324,42 +388,68 @@ async function configurarPerfilProfissionalPublico() {
 /* SOLICITAÇÕES DO CLIENTE                                                */
 /* ---------------------------------------------------------------------- */
 
+function cartaoSolicitacao(item, profissional) {
+  const nome = profissional?.nome || `Profissional #${item.profissional_id}`;
+  return `<article class="cartao" style="padding:18px;margin:12px 0">
+    <strong>Solicitação #${item.id}</strong><p>${escaparSolicitacao(nome)} · Serviço #${item.servico_id}</p>
+    <p>Status: <strong>${escaparSolicitacao(item.status)}</strong></p>
+    <a class="btn btn-secundario" href="solicitacao-detalhe.html?id=${item.id}">Ver detalhes</a>
+  </article>`;
+}
+
+async function carregarSolicitacoes(container, abas, tipo) {
+  const carregar = async () => {
+    container.textContent = "Carregando solicitações...";
+    try {
+      const itens = await requisicaoAutenticada("/solicitacoes");
+      const filtro = [...abas].find(a => a.classList.contains("ativa"))?.dataset.status;
+      const grupos = tipo === "cliente" ? {
+        andamento: ["Pendente", "Aceita"], concluida: ["Concluída"], cancelada: ["Cancelada", "Recusada"]
+      } : { nova: ["Pendente"], aceita: ["Aceita"], andamento: ["Aceita"], historico: ["Concluída", "Cancelada", "Recusada"] };
+      const selecionados = itens.filter(i => (grupos[filtro] || []).includes(i.status));
+      container.innerHTML = selecionados.length ? selecionados.map(i => cartaoSolicitacao(i)).join("") : htmlEstadoVazio("inbox", "Nenhuma solicitação nesta categoria.");
+    } catch (erro) { container.textContent = erro.message; }
+  };
+  abas.forEach(aba => aba.addEventListener("click", () => {
+    abas.forEach(a => a.classList.remove("ativa")); aba.classList.add("ativa"); carregar();
+  }));
+  await carregar();
+}
+
 function configurarSolicitacoesCliente() {
   const container = document.getElementById("listaSolicitacoesCliente");
-  if (!container) return;
-  const abas = document.querySelectorAll("#abasSolicitacoesCliente .aba");
-  const renderizar = () => { container.innerHTML = htmlEstadoVazio("inbox", "Ainda não há solicitações disponíveis. Esta função aguarda integração com a API."); };
-  abas.forEach(aba => aba.addEventListener("click", () => {
-    abas.forEach(a => a.classList.remove("ativa"));
-    aba.classList.add("ativa");
-    renderizar();
-  }));
-  renderizar();
+  if (container) carregarSolicitacoes(container, document.querySelectorAll("#abasSolicitacoesCliente .aba"), "cliente");
 }
 
-/* ---------------------------------------------------------------------- */
-/* SOLICITAÇÕES DO PROFISSIONAL                                           */
-/* ---------------------------------------------------------------------- */
 function configurarSolicitacoesProfissional() {
   const container = document.getElementById("listaSolicitacoesProfissional");
-  if (!container) return;
-  const abas = document.querySelectorAll("#abasSolicitacoesProfissional .aba");
-  const renderizar = () => { container.innerHTML = htmlEstadoVazio("inbox", "Ainda não há solicitações disponíveis. Esta função aguarda integração com a API."); };
-  abas.forEach(aba => aba.addEventListener("click", () => {
-    abas.forEach(a => a.classList.remove("ativa"));
-    aba.classList.add("ativa");
-    renderizar();
-  }));
-  renderizar();
+  if (container) carregarSolicitacoes(container, document.querySelectorAll("#abasSolicitacoesProfissional .aba"), "profissional");
 }
 
-/* ---------------------------------------------------------------------- */
-/* DETALHE DE SOLICITAÇÃO                                                 */
-/* ---------------------------------------------------------------------- */
-function configurarSolicitacaoDetalhe() {
+async function configurarSolicitacaoDetalhe() {
   const container = document.getElementById("detalheSolicitacaoConteudo");
   if (!container) return;
-  container.innerHTML = htmlEstadoVazio("inbox", "Detalhes indisponíveis: a API de solicitações ainda não está implementada.");
+  const id = Number(new URLSearchParams(location.search).get("id"));
+  if (!Number.isInteger(id) || id <= 0) { container.textContent = "Solicitação inválida."; return; }
+  let usuario = null;
+  try { usuario = JSON.parse(sessionStorage.getItem("usuario") || "null"); } catch (_) {}
+  async function carregar() {
+    try {
+      const item = await requisicaoAutenticada(`/solicitacoes/${id}`);
+      const acoes = usuario?.tipo === "cliente" && item.status === "Pendente" ? ["Cancelada"] :
+        usuario?.tipo === "profissional" && item.status === "Pendente" ? ["Aceita", "Recusada"] :
+        usuario?.tipo === "profissional" && item.status === "Aceita" ? ["Concluída"] : [];
+      container.innerHTML = `<h1>Solicitação #${item.id}</h1><p>Status: <strong>${escaparSolicitacao(item.status)}</strong></p><p>Serviço #${item.servico_id} · Profissional #${item.profissional_id}</p><p>Data: ${escaparSolicitacao(item.data)}</p><div id="acoesSolicitacao">${acoes.map(a => `<button type="button" class="btn btn-primario" data-novo-status="${a}" style="margin:6px">${a === "Cancelada" ? "Cancelar" : a === "Aceita" ? "Aceitar" : a === "Recusada" ? "Recusar" : "Concluir"}</button>`).join("")}</div><p id="erroAtualizacaoSolicitacao" role="alert"></p><a href="${usuario?.tipo === "profissional" ? "solicitacoes-profissional.html" : "solicitacoes-cliente.html"}">Voltar às solicitações</a>`;
+      container.querySelectorAll("[data-novo-status]").forEach(botao => botao.addEventListener("click", async () => {
+        botao.disabled = true;
+        try {
+          await requisicaoAutenticada(`/solicitacoes/${id}/status`, { method: "PATCH", body: JSON.stringify({ status: botao.dataset.novoStatus }) });
+          await carregar();
+        } catch (erro) { container.querySelector("#erroAtualizacaoSolicitacao").textContent = erro.message; botao.disabled = false; }
+      }));
+    } catch (erro) { container.textContent = erro.message; }
+  }
+  await carregar();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -440,87 +530,91 @@ async function configurarContaCliente() {
 /* DASHBOARD DO PROFISSIONAL                                              */
 /* ---------------------------------------------------------------------- */
 
-function configurarDashboardProfissional() {
+async function configurarDashboardProfissional() {
   const saudacao = document.getElementById("saudacaoProfissional");
   if (!saudacao) return;
-  let usuario = null;
-  try { usuario = JSON.parse(sessionStorage.getItem("usuario") || "null"); } catch (_) {}
+  const usuario = JSON.parse(sessionStorage.getItem("usuario") || "null");
   saudacao.textContent = usuario?.nome?.split(" ")[0] || "Profissional";
-  ["resumoNovas", "resumoAceitas", "resumoAndamento", "resumoConcluidas"].forEach(id => {
-    const elemento = document.getElementById(id);
-    if (elemento) elemento.textContent = "—";
-  });
-  const listaRecentes = document.getElementById("listaSolicitacoesRecentes");
-  if (listaRecentes) listaRecentes.innerHTML = htmlEstadoVazio("inbox", "Solicitações ainda não integradas à API.");
-  const listaServicos = document.getElementById("listaMeusServicosResumo");
-  if (listaServicos) listaServicos.innerHTML = htmlEstadoVazio("handyman", "Serviços do profissional ainda não integrados à API.");
+  const recentes = document.getElementById("listaSolicitacoesRecentes");
+  const servicos = document.getElementById("listaMeusServicosResumo");
+  try {
+    const [solicitacoes, meusServicos] = await Promise.all([
+      requisicaoAutenticada("/solicitacoes"), requisicaoAutenticada("/me/servicos")
+    ]);
+    const contagens = { resumoNovas: "Pendente", resumoAceitas: "Aceita", resumoAndamento: "Aceita", resumoConcluidas: "Concluída" };
+    Object.entries(contagens).forEach(([id, status]) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = solicitacoes.filter(s => s.status === status).length;
+    });
+    if (recentes) recentes.innerHTML = solicitacoes.length
+      ? solicitacoes.slice(0, 5).map(s => `<div class="cartao" style="margin-bottom:10px;padding:14px">Solicitação #${s.id} — ${s.status} <a href="solicitacao-detalhe.html?id=${s.id}">Ver detalhes</a></div>`).join("")
+      : htmlEstadoVazio("inbox", "Nenhuma solicitação recebida.");
+    if (servicos) servicos.textContent = meusServicos.length ? meusServicos.map(s => s.nome).join(" • ") : "Nenhum serviço cadastrado.";
+    document.querySelectorAll(".aviso-mock").forEach(el => el.remove());
+  } catch (erro) {
+    if (recentes) recentes.textContent = `Não foi possível carregar o painel: ${erro.message}`;
+    if (servicos) servicos.textContent = "Não foi possível carregar os serviços.";
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 /* GERENCIAMENTO DE SERVIÇOS DO PROFISSIONAL                              */
 /* ---------------------------------------------------------------------- */
 
-function configurarServicosProfissional() {
+async function configurarServicosProfissional() {
   const listaAtuais = document.getElementById("listaServicosAtuais");
   if (!listaAtuais) return;
-
-  let servicosAtuais = []; // Não exibir serviços fictícios como se fossem do usuário.
-
-  function renderizarAtuais() {
-    listaAtuais.innerHTML = servicosAtuais.length
-      ? servicosAtuais.map(function (s) {
-          return `<span class="chip-removivel">${s} <button type="button" data-remover-servico="${s}">✕</button></span>`;
-        }).join("")
-      : htmlEstadoVazio("handyman", "Você ainda não adicionou nenhum serviço.");
-
-    listaAtuais.querySelectorAll("[data-remover-servico]").forEach(function (botao) {
-      botao.addEventListener("click", function () {
-        alert("A remoção de serviços do profissional ainda não está disponível na API.");
-      });
-    });
+  const seletor = document.getElementById("seletorCategoriaServico");
+  const disponiveis = document.getElementById("listaServicosDisponiveis");
+  let atuais = [], catalogo = [];
+  async function carregar() {
+    [atuais, catalogo] = await Promise.all([
+      requisicaoAutenticada("/me/servicos"), fetch(`${API_BASE_URL}/servicos`).then(r => { if (!r.ok) throw Error("Falha ao carregar serviços"); return r.json(); })
+    ]);
+    const categorias = await fetch(`${API_BASE_URL}/categorias`).then(r => { if (!r.ok) throw Error("Falha ao carregar categorias"); return r.json(); });
+    seletor.innerHTML = '<option value="">Escolha uma categoria...</option>' + categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join("");
+    renderizar();
   }
-  renderizarAtuais();
-
-  const seletorCategoria = document.getElementById("seletorCategoriaServico");
-  const listaDisponiveis = document.getElementById("listaServicosDisponiveis");
-
-  seletorCategoria.innerHTML = '<option value="">Escolha uma categoria...</option>' +
-    CATEGORIAS.map(function (c) { return `<option value="${c.id}">${c.nome}</option>`; }).join("");
-
-  seletorCategoria.addEventListener("change", function () {
-    const categoria = CATEGORIAS.find(function (c) { return c.id === seletorCategoria.value; });
-    if (!categoria) { listaDisponiveis.innerHTML = ""; return; }
-
-    listaDisponiveis.innerHTML = categoria.servicos.map(function (servico) {
-      const jaAdicionado = servicosAtuais.includes(servico);
-      return `<button type="button" class="servico-checkbox${jaAdicionado ? " selecionado" : ""}" data-servico-disponivel="${servico}" ${jaAdicionado ? "disabled" : ""}>${servico}</button>`;
-    }).join("");
-
-    listaDisponiveis.querySelectorAll("[data-servico-disponivel]").forEach(function (botao) {
-      botao.addEventListener("click", function () {
-        alert("A vinculação de serviços ao profissional ainda não está disponível na API.");
-      });
-    });
-  });
+  function renderizar() {
+    listaAtuais.innerHTML = atuais.length ? atuais.map(s => `<span class="chip-removivel">${s.nome} <button type="button" data-remover="${s.id}" aria-label="Remover ${s.nome}">✕</button></span>`).join("") : htmlEstadoVazio("handyman", "Você ainda não adicionou nenhum serviço.");
+    listaAtuais.querySelectorAll("[data-remover]").forEach(b => b.addEventListener("click", async () => {
+      try { await requisicaoAutenticada(`/me/servicos/${b.dataset.remover}`, {method:"DELETE"}); await carregar(); }
+      catch(e) { alert(e.message); }
+    }));
+    const disponiveisCategoria = catalogo.filter(s => String(s.categoria_id) === seletor.value && !atuais.some(a => a.id === s.id));
+    disponiveis.innerHTML = disponiveisCategoria.map(s => `<button type="button" class="servico-checkbox" data-adicionar="${s.id}">${s.nome}</button>`).join("");
+    disponiveis.querySelectorAll("[data-adicionar]").forEach(b => b.addEventListener("click", async () => {
+      try { await requisicaoAutenticada(`/me/servicos/${b.dataset.adicionar}`, {method:"POST"}); await carregar(); }
+      catch(e) { alert(e.message); }
+    }));
+  }
+  seletor.addEventListener("change", renderizar);
+  try { await carregar(); } catch(e) { listaAtuais.textContent = `Erro ao carregar serviços: ${e.message}`; }
 }
 
 /* ---------------------------------------------------------------------- */
 /* PERFIL PROFISSIONAL EDITÁVEL                                          */
 /* ---------------------------------------------------------------------- */
 
-function configurarPerfilProfissionalEditar() {
+async function configurarPerfilProfissionalEditar() {
   const formulario = document.getElementById("formPerfilProfissionalEditar");
   if (!formulario) return;
-
-  let usuario = null;
-  try { usuario = JSON.parse(sessionStorage.getItem("usuario") || "null"); } catch (_) {}
-  document.getElementById("editarNome").value = usuario?.nome || "";
+  const mensagem = document.getElementById("mensagemPerfilProfissionalEditar");
   configurarContadorCaracteres("editarBiografia", "contadorEditarBiografia");
-
-  formulario.addEventListener("submit", function (evento) {
+  const campos = {nome:"editarNome", descricao:"editarDescricao", biografia:"editarBiografia", experiencia:"editarExperiencia", regiao:"editarRegiao"};
+  try {
+    const perfil = await requisicaoAutenticada("/me/profissional");
+    Object.entries(campos).forEach(([campo,id]) => { document.getElementById(id).value = perfil[campo] || ""; });
+    document.getElementById("editarBiografia").dispatchEvent(new Event("input"));
+  } catch(e) { mostrarMensagem(mensagem, e.message, "erro"); }
+  formulario.addEventListener("submit", async evento => {
     evento.preventDefault();
-    const mensagem = document.getElementById("mensagemPerfilProfissionalEditar");
-    // Integração futura: PUT /profissionais/:id (inclui "biografia")
-    mostrarMensagem(mensagem, "Alteração não salva: a API de edição do perfil profissional ainda não está disponível.", "erro");
+    const dados = Object.fromEntries(Object.entries(campos).map(([campo,id]) => [campo,document.getElementById(id).value.trim()]));
+    try {
+      await requisicaoAutenticada("/me/profissional", {method:"PUT", body:JSON.stringify(dados)});
+      const usuario = JSON.parse(sessionStorage.getItem("usuario") || "null");
+      if (usuario) { usuario.nome = dados.nome; sessionStorage.setItem("usuario", JSON.stringify(usuario)); }
+      mostrarMensagem(mensagem, "Perfil salvo no banco de dados!", "sucesso");
+    } catch(e) { mostrarMensagem(mensagem, e.message, "erro"); }
   });
 }

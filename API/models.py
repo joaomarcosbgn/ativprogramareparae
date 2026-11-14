@@ -165,3 +165,18 @@ class Solicitacao(Base):
         "Servico",
         back_populates="solicitacoes",
     )
+
+
+class ProfissionalServico(Base):
+    __tablename__ = "profissional_servicos"
+    profissional_id = Column(Integer, ForeignKey("profissionais.id", ondelete="CASCADE"), primary_key=True)
+    servico_id = Column(Integer, ForeignKey("servicos.id", ondelete="CASCADE"), primary_key=True)
+
+
+class PerfilProfissionalExtra(Base):
+    __tablename__ = "perfis_profissionais_extra"
+    profissional_id = Column(Integer, ForeignKey("profissionais.id", ondelete="CASCADE"), primary_key=True)
+    descricao = Column(String, nullable=False, default="")
+    biografia = Column(String, nullable=False, default="")
+    experiencia = Column(String, nullable=False, default="")
+    regiao = Column(String, nullable=False, default="")

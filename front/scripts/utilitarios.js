@@ -59,7 +59,6 @@ async function identificarUsuarioNoChatbase() {
   try {
     const resposta = await fetch(`${API_BASE_URL}/chatbase-token`, {
       method: "GET",
-      credentials: "include",
     });
     if (!resposta.ok) return;
 
@@ -119,7 +118,7 @@ function formatarDataRelativa(iso) {
  */
 async function chamarApi(caminho, opcoes) {
   try {
-    const resposta = await fetch(`${API_BASE_URL}${caminho}`, Object.assign({ credentials: "include" }, opcoes || {}));
+    const resposta = await fetch(`${API_BASE_URL}${caminho}`, Object.assign({}, opcoes || {}));
     if (!resposta.ok) return { ok: false, status: resposta.status, dados: null };
     const dados = await resposta.json().catch(function () { return null; });
     return { ok: true, status: resposta.status, dados: dados };
