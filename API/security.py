@@ -16,7 +16,7 @@ if not SECRET_KEY:
     if os.getenv("REPARAE_ENV", "development").lower() in ("production", "prod"):
         raise RuntimeError("Configure REPARAE_SECRET_KEY antes de iniciar a API em produção.")
     SECRET_KEY = secrets.token_urlsafe(48)
-    warnings.warn("REPARAE_SECRET_KEY ausente: chave aleatória de desenvolvimento. Tokens deixam de valer ao reiniciar a API.", RuntimeWarning)
+    warnings.warn("REPARAE_SECRET_KEY ausente: chave temporária de desenvolvimento. Configure-a no ambiente para manter sessões após reinício.", RuntimeWarning)
 
 ALGORITHM = "HS256"
 TEMPO_TOKEN_MINUTOS = 60

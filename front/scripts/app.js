@@ -13,7 +13,13 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.replace("login.html");
     return;
   }
+  let usuarioSessao = null;
+  try { usuarioSessao = JSON.parse(sessionStorage.getItem("usuario") || "null"); } catch (_) {}
   const tipoUsuario = document.body.dataset.tipoUsuario;
+  if (!usuarioSessao || (tipoUsuario && usuarioSessao.tipo !== tipoUsuario)) {
+    window.location.replace("login.html");
+    return;
+  }
   const paginaAtiva = document.body.dataset.pagina;
   if (tipoUsuario && paginaAtiva && typeof renderizarNavegacao === "function") {
     renderizarNavegacao(tipoUsuario, paginaAtiva);
@@ -630,10 +636,15 @@ async function configurarDashboardProfissional() {
     const [solicitacoes, meusServicos] = await Promise.all([
       requisicaoAutenticada("/solicitacoes"), requisicaoAutenticada("/me/servicos")
     ]);
-    const contagens = { resumoNovas: "Pendente", resumoAceitas: "Aceita", resumoAndamento: "Aceita", resumoConcluidas: "Concluída" };
-    Object.entries(contagens).forEach(([id, status]) => {
+    const contagens = {
+      resumoNovas: s => s.status === "Pendente",
+      resumoAceitas: s => ["Aceita", "Concluída"].includes(s.status),
+      resumoAndamento: s => s.status === "Aceita",
+      resumoConcluidas: s => s.status === "Concluída"
+    };
+    Object.entries(contagens).forEach(([id, criterio]) => {
       const el = document.getElementById(id);
-      if (el) el.textContent = solicitacoes.filter(s => s.status === status).length;
+      if (el) el.textContent = solicitacoes.filter(criterio).length;
     });
     if (recentes) recentes.innerHTML = solicitacoes.length
       ? solicitacoes.slice(0, 5).map(s => `<div class="cartao" style="margin-bottom:10px;padding:14px">Solicitação #${s.id} — ${s.status} <a href="solicitacao-detalhe.html?id=${s.id}">Ver detalhes</a></div>`).join("")

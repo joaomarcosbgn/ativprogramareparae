@@ -57,8 +57,11 @@ async function identificarUsuarioNoChatbase() {
   if (typeof window.chatbase === "undefined") return;
 
   try {
+    const tokenSessao = sessionStorage.getItem("token");
+    if (!tokenSessao) return;
     const resposta = await fetch(`${API_BASE_URL}/chatbase-token`, {
       method: "GET",
+      headers: { Authorization: `Bearer ${tokenSessao}` },
     });
     if (!resposta.ok) return;
 

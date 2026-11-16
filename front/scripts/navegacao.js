@@ -45,10 +45,16 @@ function renderizarNavegacao(tipoUsuario, paginaAtiva) {
             return `<a href="${link.href}" class="topo-app-link${ativo}"><span class="icone">${link.icone}</span>${link.label}</a>`;
           }).join("")}
         </nav>
-        <a href="index.html" class="btn btn-secundario topo-app-sair"><span class="icone">logout</span>Sair</a>
+        <a href="login.html" class="btn btn-secundario topo-app-sair" id="botaoSair"><span class="icone">logout</span>Sair</a>
       </div>
     `;
   }
+
+  const sair = document.getElementById("botaoSair");
+  if (sair) sair.addEventListener("click", function () {
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("usuario");
+  });
 
   if (inferior) {
     inferior.innerHTML = links.map(function (link) {

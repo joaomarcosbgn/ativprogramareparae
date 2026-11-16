@@ -1,114 +1,42 @@
-# Reparaê
+# Reparaê — Precisou? Reparaê.
 
-### Precisou? Reparaê.
+Marketplace acadêmico de serviços. Front-end em HTML, CSS e JavaScript; API em FastAPI/SQLAlchemy; banco SQLite.
 
-##  Sobre o projeto
+## Executar localmente
 
-O **Reparaê** é uma plataforma de serviços que conecta pessoas que precisam de um serviço a profissionais que oferecem diferentes tipos de serviços.
+1. Abra um terminal na pasta `API` e instale `python -m pip install -r requirements.txt`.
+2. Configure a variável de ambiente `REPARAE_SECRET_KEY` com um valor aleatório forte e **permanente**. Não coloque o segredo no GitHub. No PowerShell, para a sessão atual: `$env:REPARAE_SECRET_KEY="<seu-segredo-aleatorio>"`. Em produção configure também `REPARAE_ENV=production`.
+3. Inicie: `python -m uvicorn main:app --reload`. Documentação interativa: `http://127.0.0.1:8000/docs`.
+4. Abra `front/index.html` usando Live Server no VS Code. Configure `front/scripts/config.js` para apontar para a API desejada.
+5. O primeiro administrador é criado localmente com `python criar_admin.py`, **no mesmo banco usado pela API**. O cadastro público só cria clientes e profissionais. O login usa `POST /login` (não `/auth/login`).
 
-A proposta é facilitar a busca por serviços de forma simples, organizada e prática, permitindo que o usuário encontre o que precisa através da plataforma.
+## Segurança e permissões
 
+- Senhas: bcrypt; sessão: JWT Bearer com expiração de 60 minutos. Logout remove o token do `sessionStorage` no navegador; JWT já emitido continua válido até expirar, portanto não equivale a revogação no servidor.
+- `/usuarios` (lista), categorias e serviços (escrita) exigem administrador. Um usuário pode acessar/editar seus próprios dados; o administrador pode gerenciar outros usuários.
+- Clientes criam solicitações; profissionais vinculados a elas podem aceitar, recusar e concluir; clientes podem cancelar solicitações pendentes. A API valida o token e o vínculo, independentemente do controle visual da página.
+- A verificação visual por tipo de conta no navegador é apenas conveniência; autorização real fica no servidor.
+- Não publique `API/reparae.db`, backups, `.env`, tokens ou a pasta `.venv` em repositórios públicos. O `.gitignore` evita novos arquivos, mas não remove arquivos já rastreados do Git.
 
+## Banco e auditoria
 
-## Objetivo
+- O banco local está em `API/reparae.db`. O SQLAlchemy cria tabelas ausentes, mas **não aplica alterações de schema a tabelas existentes**; faça backup antes de migrações.
+- Execute `python verificar_integridade.py` na pasta `API` para auditar integridade, chaves estrangeiras e possíveis incompatibilidades entre especialidades e categorias. O script não altera dados.
+- Para iniciar um banco novo, mova o banco antigo para um backup seguro fora do repositório e inicie a API; então cadastre categorias, serviços e usuários. Não substitua um banco existente sem backup.
 
-Desenvolver uma plataforma web que funcione como um **delivery de serviços**, aproximando usuários de profissionais de diferentes áreas e tornando a busca, contratação e gerenciamento dessas soluções mais simples, prática e organizada. O sistema será desenvolvido com uma estrutura integrada de **Front-end, Back-end e Banco de Dados**.
+## Chatbase
 
+`GET /chatbase-token` requer Bearer JWT e `CHATBASE_IDENTITY_SECRET` no ambiente. Sem o segredo, retorna HTTP 503, sem afetar as demais páginas. Configure o segredo de verificação de identidade fornecido pelo Chatbase, **não** a chave pública do widget. Confirme o formato de identidade exigido pelo seu painel Chatbase antes de ativar em produção.
 
-##  Tecnologias
+## Testes e limitações
 
-### Front-end
+- `python -m compileall -q API` verifica sintaxe Python; `node --check front/scripts/app.js` verifica sintaxe JS (repita para os outros scripts).
+- `python API/verificar_integridade.py` verifica o banco local sem alterá-lo.
+- A validação HTTP de ponta a ponta requer instalar dependências, executar a API e cadastrar contas de teste. Testes de múltiplos profissionais e paginação exigem dados suficientes.
+- Serviços de mensagens e pagamentos presentes no front-end podem ser protótipos; não trate como integrações de pagamento ou chat transacional sem validação específica.
 
-* HTML5
-* CSS3
-* JavaScript
+## Organização
 
-### Back-end
-
-* Python
-* FastAPI
-* SQLAlchemy
-
-### Banco de Dados
-
-* SQLite
-
-### Ferramentas
-
-* Visual Studio Code
-* Git
-* GitHub
-* GitHub Desktop
-* Swagger
-* Figma
-* Trello
-
-
-##  Estrutura do projeto
-
-O Reparaê é dividido em três partes principais:
-
-**Front-end:** responsável pela interface e interação com o usuário.
-
-**Back-end:** responsável pela lógica da aplicação e pela API.
-
-**Banco de Dados:** responsável pelo armazenamento e persistência das informações.
-
-
-##  Funcionamento
-
-```text
-Usuário
-   ↓
-Front-end
-   ↓
-Back-end / API
-   ↓
-Banco de Dados
-```
-
-
-## Funcionalidades
-
-As principais funcionalidades do sistema estão sendo desenvolvidas ao longo das Sprints do projeto.
-
-Entre elas estão:
-
-* Cadastro de usuários
-* Login
-* Pesquisa de serviços
-* Filtros
-* Gerenciamento de dados
-* Validação de formulários
-* Tratamento de erros
-* Persistência de dados
-
-
-## Desenvolvimento
-
-O projeto está sendo desenvolvido de forma incremental através de Sprints.
-
-### Sprint 01
-
-Definição da proposta, requisitos, tecnologias e estrutura inicial do sistema.
-
-### Sprint 02
-
-Implementação e integração das principais funcionalidades, incluindo Front-end, Back-end e Banco de Dados.
-
-
-## Como executar
-
-As instruções completas para instalação e execução do projeto serão adicionadas após a finalização da estrutura do sistema.
-
-
-## Equipe
-
-Projeto acadêmico desenvolvido por uma equipe de 4 integrantes.
-
-As atividades são divididas entre desenvolvimento Front-end, Back-end, Banco de Dados e suporte ao projeto.
-
-
-## Status
-
- **Projeto em desenvolvimento — Sprint 02**
+- `API/main.py`: rotas FastAPI e autorização; `API/models.py`: modelos; `API/schemas.py`: validação; `API/crud.py`: persistência.
+- `front/`: páginas, estilos e scripts do navegador.
+- `BancodeDados/`: SQL e dicionário de dados de referência; confirme divergências com o schema atual antes de usar scripts antigos.
