@@ -1,4 +1,5 @@
 
+import os
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import IntegrityError
@@ -35,6 +36,7 @@ app.add_middleware(
         "http://127.0.0.1:5501",
         "http://localhost:5501",
     ],
+    allow_origin_regex=r"https://[a-z0-9-]+\.vercel\.app",
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

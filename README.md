@@ -40,3 +40,12 @@ Marketplace acadêmico de serviços. Front-end em HTML, CSS e JavaScript; API em
 - `API/main.py`: rotas FastAPI e autorização; `API/models.py`: modelos; `API/schemas.py`: validação; `API/crud.py`: persistência.
 - `front/`: páginas, estilos e scripts do navegador.
 - `BancodeDados/`: SQL e dicionário de dados de referência; confirme divergências com o schema atual antes de usar scripts antigos.
+
+## Atualização do catálogo e testes — 21/11/2026
+
+A cópia de demonstração inclui cinco categorias, quinze serviços e trinta contas fictícias de profissionais, dois para cada serviço. Veja `RELATORIO_FINAL_REVISAO_2026-11-21.md` para resultados, limitações e procedimentos. O DER lógico atualizado está em `BancodeDados/DER_ATUALIZADO_2026-11-21.md`.
+
+Para validar o banco: `cd API && python testar_catalogo.py`.
+Para executar testes HTTP com as bibliotecas reais: `pip install -r requirements.txt -r requirements-test.txt` e `python testar_api_integrada.py` (necessita credenciais de demonstração entregues separadamente).
+
+**Atenção:** os dados de profissionais são fictícios e não representam prestadores de serviço reais.

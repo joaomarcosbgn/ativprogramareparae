@@ -311,8 +311,13 @@ def _consulta_profissionais_filtrada(db, q="", categoria="", regiao=""):
                         models.Usuario.tipo == "profissional"))
     if q.strip():
         termo = f"%{q.strip()}%"
+        # Permite pesquisar pelo nome do serviço (não apenas pelo nome do profissional).
+        servicos_correspondentes = (db.query(models.ProfissionalServico.profissional_id)
+            .join(models.Servico, models.Servico.id == models.ProfissionalServico.servico_id)
+            .filter(models.Servico.nome.ilike(termo)))
         consulta = consulta.filter(or_(models.Usuario.nome.ilike(termo),
-                                       models.Profissional.especialidade.ilike(termo)))
+                                       models.Profissional.especialidade.ilike(termo),
+                                       models.Profissional.id.in_(servicos_correspondentes)))
     if categoria.strip():
         consulta = consulta.filter(models.Profissional.especialidade.ilike(categoria.strip()))
     if regiao.strip():

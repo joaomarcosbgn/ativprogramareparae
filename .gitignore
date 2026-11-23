@@ -2,3 +2,16 @@ API/.venv/
 __pycache__/
 *.pyc
 .env
+
+# Arquivos locais e dados privados
+API/*.db
+API/*.db-*
+API/*.sqbpro
+API/.env*
+!.env.example
+.pytest_cache/
+
+# Dados fictícios e credenciais locais
+API/CREDENCIAIS_DEMONSTRACAO_PRIVADO.csv
+API/*CREDENCIAIS*
+*.zip
