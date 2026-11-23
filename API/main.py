@@ -1,5 +1,4 @@
 
-import os
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import IntegrityError
@@ -36,7 +35,6 @@ app.add_middleware(
         "http://127.0.0.1:5501",
         "http://localhost:5501",
     ],
-    allow_origin_regex=r"https://[a-z0-9-]+\.vercel\.app",
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -719,7 +717,9 @@ def criar_solicitacao(
         raise HTTPException(status_code=404, detail="Profissional indisponível ou não encontrado.")
     if not db.get(models.Servico, dados.servico_id):
         raise HTTPException(status_code=404, detail="Serviço não encontrado.")
-    if not db.get(models.ProfissionalServico, (profissional.id, dados.servico_id)):
+    # Compatibilidade: profissionais antigos sem vínculos ainda podem receber solicitações.
+    vinculos = db.query(models.ProfissionalServico).filter_by(profissional_id=profissional.id).count()
+    if vinculos and not db.get(models.ProfissionalServico, (profissional.id, dados.servico_id)):
         raise HTTPException(status_code=400, detail="O profissional não oferece esse serviço.")
     item = models.Solicitacao(
         usuario_id=usuario.id,
@@ -780,10 +780,7 @@ def atualizar_status_solicitacao(
     eh_cliente = item.usuario_id == usuario.id and usuario.tipo == "cliente"
     if eh_cliente:
         permitido = dados.status == "Cancelada" and item.status == "Pendente"
-    elif usuario.tipo == "profissional" and db.query(models.Profissional.id).filter(
-        models.Profissional.id == item.profissional_id,
-        models.Profissional.usuario_id == usuario.id,
-    ).first():
+    elif usuario.tipo == "profissional":
         permitido = (
             (dados.status in ("Aceita", "Recusada") and item.status == "Pendente")
             or (dados.status == "Concluída" and item.status == "Aceita")
@@ -873,20 +870,3 @@ def desvincular_meu_servico(servico_id: int, db: Session = Depends(get_db), usua
         raise HTTPException(status_code=404, detail="Vínculo não encontrado.")
     db.delete(vinculo)
     db.commit()
-
-
-# Chatbase Identity Verification: token assinado somente no servidor.
-@app.get("/chatbase-token")
-def obter_token_chatbase(usuario=Depends(obter_usuario_atual)):
-    import os
-    from datetime import datetime, timedelta, timezone
-    from jose import jwt
-    segredo = os.getenv("CHATBASE_IDENTITY_SECRET", "")
-    if not segredo:
-        raise HTTPException(status_code=503, detail="Identificação do Chatbase não configurada.")
-    agora = datetime.now(timezone.utc)
-    token = jwt.encode(
-        {"user_id": str(usuario.id), "email": usuario.email, "iat": agora, "exp": agora + timedelta(hours=1)},
-        segredo, algorithm="HS256",
-    )
-    return {"token": token}
