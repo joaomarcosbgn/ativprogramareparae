@@ -352,7 +352,7 @@ def pesquisar_profissionais(
 @app.get("/profissionais/total")
 def contar_profissionais(q: str = "", categoria: str = "", regiao: str = "", db: Session = Depends(get_db)):
     """Total de profissionais que correspondem aos filtros, sem limite de página."""
-    return {"total": crud.pesquisar_profissionais(db, q=q, categoria=categoria, regiao=regiao, contar=True)}
+    return {"total": crud.contar_profissionais(db, q=q, categoria=categoria, regiao=regiao)}
 
 
 @app.get("/profissionais/paginados")
@@ -871,3 +871,4 @@ def desvincular_meu_servico(servico_id: int, db: Session = Depends(get_db), usua
         raise HTTPException(status_code=404, detail="Vínculo não encontrado.")
     db.delete(vinculo)
     db.commit()
+
