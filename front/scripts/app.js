@@ -237,12 +237,78 @@ saudacao.textContent = usuarioLogado?.nome || "Cliente";
       .catch(() => { gradeRecomendados.textContent = "Não foi possível carregar os profissionais."; });
   }
 
-  const listaHome = document.getElementById("listaSolicitacoesHome");
-  if (listaHome) requisicaoAutenticada("/solicitacoes").then(itens => {
-    listaHome.innerHTML = itens.length ? itens.slice(0, 5).map(i => cartaoSolicitacao(i)).join("") : htmlEstadoVazio("inbox", "Nenhuma solicitação disponível.");
-  }).catch(e => { listaHome.textContent = e.message; });
+  
+const listaHome = document.getElementById("listaSolicitacoesHome");
 
-  renderizarAvaliacoesEm("gradeAvaliacoesApp");
+if (listaHome) {
+  requisicaoAutenticada("/solicitacoes")
+    .then(async itens => {
+      const recentes = itens.slice(0, 5);
+
+      if (!recentes.length) {
+        listaHome.innerHTML = htmlEstadoVazio(
+          "inbox",
+          "Nenhuma solicitação disponível."
+        );
+        return;
+      }
+
+      const idsProfissionais = [
+        ...new Set(recentes.map(item => item.profissional_id))
+      ];
+
+      const dadosProfissionais = new Map();
+
+      await Promise.all(idsProfissionais.map(async id => {
+        try {
+          const [profissionalResp, servicosResp] = await Promise.all([
+            fetch(`${API_BASE_URL}/profissionais/${encodeURIComponent(id)}`),
+            fetch(`${API_BASE_URL}/profissionais/${encodeURIComponent(id)}/servicos`)
+          ]);
+
+          const profissional = profissionalResp.ok
+            ? await profissionalResp.json()
+            : null;
+
+          const servicos = servicosResp.ok
+            ? await servicosResp.json()
+            : [];
+
+          dadosProfissionais.set(Number(id), {
+            profissional,
+            servicos: Array.isArray(servicos) ? servicos : []
+          });
+
+        } catch (erro) {
+          console.warn("Erro ao carregar dados do profissional:", erro);
+
+          dadosProfissionais.set(Number(id), {
+            profissional: null,
+            servicos: []
+          });
+        }
+      }));
+
+      listaHome.innerHTML = recentes.map(item => {
+        const dados = dadosProfissionais.get(
+          Number(item.profissional_id)
+        );
+
+        const profissional = dados?.profissional || null;
+
+        const servico = dados?.servicos.find(s =>
+          Number(s.id) === Number(item.servico_id)
+        ) || null;
+
+        return cartaoSolicitacao(item, profissional, servico);
+      }).join("");
+    })
+    .catch(erro => {
+      listaHome.textContent = erro.message;
+    });
+}
+
+renderizarAvaliacoesEm("gradeAvaliacoesApp");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -485,10 +551,17 @@ async function configurarPerfilProfissionalPublico() {
 /* SOLICITAÇÕES DO CLIENTE                                                */
 /* ---------------------------------------------------------------------- */
 
-function cartaoSolicitacao(item, profissional) {
-  const nome = profissional?.nome || `Profissional #${item.profissional_id}`;
+
+function cartaoSolicitacao(item, profissional, servico) {
+  const nomeProfissional =
+    profissional?.nome || `Profissional #${item.profissional_id}`;
+
+  const nomeServico =
+    servico?.nome || `Serviço #${item.servico_id}`;
+
   return `<article class="cartao" style="padding:18px;margin:12px 0">
-    <strong>Solicitação #${item.id}</strong><p>${escaparSolicitacao(nome)} · Serviço #${item.servico_id}</p>
+    <strong>Solicitação #${item.id}</strong>
+    <p>${escaparSolicitacao(nomeProfissional)} · ${escaparSolicitacao(nomeServico)}</p>
     <p>Status: <strong>${escaparSolicitacao(item.status)}</strong></p>
     <a class="btn btn-secundario" href="solicitacao-detalhe.html?id=${item.id}">Ver detalhes</a>
   </article>`;
@@ -497,21 +570,106 @@ function cartaoSolicitacao(item, profissional) {
 async function carregarSolicitacoes(container, abas, tipo) {
   const carregar = async () => {
     container.textContent = "Carregando solicitações...";
+
     try {
       const itens = await requisicaoAutenticada("/solicitacoes");
-      const filtro = [...abas].find(a => a.classList.contains("ativa"))?.dataset.status;
+
+      const filtro = [...abas].find(a =>
+        a.classList.contains("ativa")
+      )?.dataset.status;
+
       const grupos = tipo === "cliente" ? {
-        andamento: ["Pendente", "Aceita"], concluida: ["Concluída"], cancelada: ["Cancelada", "Recusada"]
-      } : { nova: ["Pendente"], aceita: ["Aceita"], andamento: ["Aceita"], historico: ["Concluída", "Cancelada", "Recusada"] };
-      const selecionados = itens.filter(i => (grupos[filtro] || []).includes(i.status));
-      container.innerHTML = selecionados.length ? selecionados.map(i => cartaoSolicitacao(i)).join("") : htmlEstadoVazio("inbox", "Nenhuma solicitação nesta categoria.");
-    } catch (erro) { container.textContent = erro.message; }
+        andamento: ["Pendente", "Aceita"],
+        concluida: ["Concluída"],
+        cancelada: ["Cancelada", "Recusada"]
+      } : {
+        nova: ["Pendente"],
+        aceita: ["Aceita"],
+        andamento: ["Aceita"],
+        historico: ["Concluída", "Cancelada", "Recusada"]
+      };
+
+      const selecionados = itens.filter(i =>
+        (grupos[filtro] || []).includes(i.status)
+      );
+
+      if (!selecionados.length) {
+        container.innerHTML = htmlEstadoVazio(
+          "inbox",
+          "Nenhuma solicitação nesta categoria."
+        );
+        return;
+      }
+
+      // Busca os dados de cada profissional uma única vez
+      const idsProfissionais = [
+        ...new Set(selecionados.map(i => i.profissional_id))
+      ];
+
+      const dadosProfissionais = new Map();
+
+      await Promise.all(idsProfissionais.map(async idProfissional => {
+        try {
+          const [profissionalResp, servicosResp] = await Promise.all([
+            fetch(`${API_BASE_URL}/profissionais/${encodeURIComponent(idProfissional)}`),
+            fetch(`${API_BASE_URL}/profissionais/${encodeURIComponent(idProfissional)}/servicos`)
+          ]);
+
+          const profissional = profissionalResp.ok
+            ? await profissionalResp.json()
+            : null;
+
+          const servicos = servicosResp.ok
+            ? await servicosResp.json()
+            : [];
+
+          dadosProfissionais.set(Number(idProfissional), {
+            profissional,
+            servicos: Array.isArray(servicos) ? servicos : []
+          });
+
+        } catch (erro) {
+          console.warn(
+            `Não foi possível carregar o profissional ${idProfissional}:`,
+            erro
+          );
+
+          dadosProfissionais.set(Number(idProfissional), {
+            profissional: null,
+            servicos: []
+          });
+        }
+      }));
+
+      // Monta os cartões com os nomes encontrados
+      container.innerHTML = selecionados.map(item => {
+        const dados = dadosProfissionais.get(
+          Number(item.profissional_id)
+        );
+
+        const profissional = dados?.profissional || null;
+
+        const servico = dados?.servicos.find(s =>
+          Number(s.id) === Number(item.servico_id)
+        ) || null;
+
+        return cartaoSolicitacao(item, profissional, servico);
+      }).join("");
+
+    } catch (erro) {
+      container.textContent = erro.message;
+    }
   };
+
   abas.forEach(aba => aba.addEventListener("click", () => {
-    abas.forEach(a => a.classList.remove("ativa")); aba.classList.add("ativa"); carregar();
+    abas.forEach(a => a.classList.remove("ativa"));
+    aba.classList.add("ativa");
+    carregar();
   }));
+
   await carregar();
 }
+
 
 function configurarSolicitacoesCliente() {
   const container = document.getElementById("listaSolicitacoesCliente");
@@ -523,31 +681,136 @@ function configurarSolicitacoesProfissional() {
   if (container) carregarSolicitacoes(container, document.querySelectorAll("#abasSolicitacoesProfissional .aba"), "profissional");
 }
 
+
 async function configurarSolicitacaoDetalhe() {
   const container = document.getElementById("detalheSolicitacaoConteudo");
   if (!container) return;
+
   const id = Number(new URLSearchParams(location.search).get("id"));
-  if (!Number.isInteger(id) || id <= 0) { container.textContent = "Solicitação inválida."; return; }
+
+  if (!Number.isInteger(id) || id <= 0) {
+    container.textContent = "Solicitação inválida.";
+    return;
+  }
+
   let usuario = null;
-  try { usuario = JSON.parse(sessionStorage.getItem("usuario") || "null"); } catch (_) {}
+
+  try {
+    usuario = JSON.parse(sessionStorage.getItem("usuario") || "null");
+  } catch (_) {}
+
   async function carregar() {
     try {
       const item = await requisicaoAutenticada(`/solicitacoes/${id}`);
-      const acoes = usuario?.tipo === "cliente" && item.status === "Pendente" ? ["Cancelada"] :
-        usuario?.tipo === "profissional" && item.status === "Pendente" ? ["Aceita", "Recusada"] :
-        usuario?.tipo === "profissional" && item.status === "Aceita" ? ["Concluída"] : [];
-      container.innerHTML = `<h1>Solicitação #${item.id}</h1><p>Status: <strong>${escaparSolicitacao(item.status)}</strong></p><p>Serviço #${item.servico_id} · Profissional #${item.profissional_id}</p><p>Data: ${escaparSolicitacao(item.data)}</p><div id="acoesSolicitacao">${acoes.map(a => `<button type="button" class="btn btn-primario" data-novo-status="${a}" style="margin:6px">${a === "Cancelada" ? "Cancelar" : a === "Aceita" ? "Aceitar" : a === "Recusada" ? "Recusar" : "Concluir"}</button>`).join("")}</div><p id="erroAtualizacaoSolicitacao" role="alert"></p><a href="${usuario?.tipo === "profissional" ? "solicitacoes-profissional.html" : "solicitacoes-cliente.html"}">Voltar às solicitações</a>`;
-      container.querySelectorAll("[data-novo-status]").forEach(botao => botao.addEventListener("click", async () => {
-        botao.disabled = true;
-        try {
-          await requisicaoAutenticada(`/solicitacoes/${id}/status`, { method: "PATCH", body: JSON.stringify({ status: botao.dataset.novoStatus }) });
-          await carregar();
-        } catch (erro) { container.querySelector("#erroAtualizacaoSolicitacao").textContent = erro.message; botao.disabled = false; }
-      }));
-    } catch (erro) { container.textContent = erro.message; }
+
+      let nomeProfissional = `Profissional #${item.profissional_id}`;
+      let nomeServico = `Serviço #${item.servico_id}`;
+
+      // Busca os dados do profissional e seus serviços
+      try {
+        const [profissionalResp, servicosResp] = await Promise.all([
+          fetch(`${API_BASE_URL}/profissionais/${encodeURIComponent(item.profissional_id)}`),
+          fetch(`${API_BASE_URL}/profissionais/${encodeURIComponent(item.profissional_id)}/servicos`)
+        ]);
+
+        if (profissionalResp.ok) {
+          const profissional = await profissionalResp.json();
+          nomeProfissional = profissional.nome || nomeProfissional;
+        }
+
+        if (servicosResp.ok) {
+          const servicos = await servicosResp.json();
+          const servico = servicos.find(
+            s => Number(s.id) === Number(item.servico_id)
+          );
+
+          if (servico) {
+            nomeServico = servico.nome || nomeServico;
+          }
+        }
+      } catch (erro) {
+        console.warn("Não foi possível carregar os nomes:", erro);
+      }
+
+      const acoes =
+        usuario?.tipo === "cliente" && item.status === "Pendente"
+          ? ["Cancelada"]
+          : usuario?.tipo === "profissional" && item.status === "Pendente"
+          ? ["Aceita", "Recusada"]
+          : usuario?.tipo === "profissional" && item.status === "Aceita"
+          ? ["Concluída"]
+          : [];
+
+      container.innerHTML = `
+        <h1>Solicitação #${item.id}</h1>
+
+        <p>Status: <strong>${escaparSolicitacao(item.status)}</strong></p>
+
+        <p>
+          Serviço: ${escaparSolicitacao(nomeServico)}
+          · Profissional: ${escaparSolicitacao(nomeProfissional)}
+        </p>
+
+        <p>Data: ${escaparSolicitacao(item.data)}</p>
+
+        <div id="acoesSolicitacao">
+          ${acoes.map(a => `
+            <button
+              type="button"
+              class="btn btn-primario"
+              data-novo-status="${a}"
+              style="margin:6px"
+            >
+              ${
+                a === "Cancelada" ? "Cancelar" :
+                a === "Aceita" ? "Aceitar" :
+                a === "Recusada" ? "Recusar" :
+                "Concluir"
+              }
+            </button>
+          `).join("")}
+        </div>
+
+        <p id="erroAtualizacaoSolicitacao" role="alert"></p>
+
+        <a href="${
+          usuario?.tipo === "profissional"
+            ? "solicitacoes-profissional.html"
+            : "solicitacoes-cliente.html"
+        }">
+          Voltar às solicitações
+        </a>
+      `;
+
+      container.querySelectorAll("[data-novo-status]").forEach(botao => {
+        botao.addEventListener("click", async () => {
+          botao.disabled = true;
+
+          try {
+            await requisicaoAutenticada(`/solicitacoes/${id}/status`, {
+              method: "PATCH",
+              body: JSON.stringify({
+                status: botao.dataset.novoStatus
+              })
+            });
+
+            await carregar();
+          } catch (erro) {
+            container.querySelector("#erroAtualizacaoSolicitacao").textContent =
+              erro.message;
+            botao.disabled = false;
+          }
+        });
+      });
+
+    } catch (erro) {
+      container.textContent = erro.message;
+    }
   }
+
   await carregar();
 }
+
 
 /* ---------------------------------------------------------------------- */
 /* CONTA DO CLIENTE                                                       */
