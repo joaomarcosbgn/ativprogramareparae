@@ -30,6 +30,13 @@ class UsuarioBase(BaseModel):
 class UsuarioCreate(UsuarioBase):
     senha: str = Field(..., min_length=8, max_length=72)
 
+    @field_validator("senha")
+    @classmethod
+    def validar_bytes_senha(cls, valor: str) -> str:
+        if len(valor.encode("utf-8")) > 72:
+            raise ValueError("A senha deve ter no máximo 72 bytes UTF-8.")
+        return valor
+
     telefone: str | None = None
     especialidade: str | None = None
 
@@ -71,6 +78,13 @@ class UsuarioUpdate(BaseModel):
     tipo: Literal["cliente", "profissional"] | None = None
     senha: str | None = Field(None, min_length=8, max_length=72)
 
+    @field_validator("senha")
+    @classmethod
+    def validar_bytes_senha(cls, valor: str | None) -> str | None:
+        if valor is not None and len(valor.encode("utf-8")) > 72:
+            raise ValueError("A senha deve ter no máximo 72 bytes UTF-8.")
+        return valor
+
     @field_validator("nome")
     @classmethod
     def validar_nome(cls, valor: str | None) -> str | None:
@@ -95,7 +109,7 @@ class UsuarioOut(BaseModel):
 
     id: int
     nome: str
-    email: EmailStr
+    email: str
     tipo: Literal["cliente", "profissional", "admin"]
 
 

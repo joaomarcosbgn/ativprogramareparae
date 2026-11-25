@@ -55,8 +55,6 @@ def popular():
                             profissional = Profissional(usuario_id=usuario.id, especialidade=nome_categoria, telefone=f'8599{numero+1:07d}', disponivel=1)
                             db.add(profissional)
                             db.flush()
-                        else:
-                            profissional.especialidade = nome_categoria
                         if not db.get(ProfissionalServico, (profissional.id, servico.id)):
                             db.add(ProfissionalServico(profissional_id=profissional.id, servico_id=servico.id))
                         extra = db.get(PerfilProfissionalExtra, profissional.id)

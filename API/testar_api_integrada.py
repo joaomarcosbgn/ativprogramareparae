@@ -1,86 +1,82 @@
-"""36 smoke tests HTTP em banco temporário, com bcrypt e python-jose reais.
-Requer: pip install -r requirements.txt -r requirements-test.txt
-Requer CREDENCIAIS_DEMONSTRACAO_PRIVADO.csv na pasta API.
-Execute: python testar_api_integrada.py
-"""
-"""Smoke HTTP test with temporary bcrypt/jose compatibility shims due unavailable packages."""
-import sys,os,tempfile,shutil,importlib
+"""Testes HTTP reais, banco novo temporário; nunca usa DATABASE_URL externo."""
+import os, sys, tempfile, shutil, subprocess
 from pathlib import Path
-from jose import jwt as pyjwt
-from fastapi.testclient import TestClient
-root=Path(__file__).resolve().parent
-tmp=Path(tempfile.mkdtemp(prefix='reparae_http_'))
-for p in root.glob('*.py'): shutil.copy2(p,tmp/p.name)
-shutil.copy2(root/'reparae.db',tmp/'reparae.db')
-os.environ['REPARAE_SECRET_KEY']='TEST-KEY-ONLY-'+'x'*55
-os.environ['CHATBASE_IDENTITY_SECRET']='TEST-CHATBASE-'+'y'*45
-sys.path.insert(0,str(tmp))
-main=importlib.import_module('main')
-client=TestClient(main.app)
-count=0
-def check(name,method,path,expected,**kw):
- global count
- r=getattr(client,method)(path,**kw)
- assert r.status_code==expected,(name,r.status_code,r.text[:300]);count+=1
- print('PASS',name,r.status_code)
- return r
-try:
- check('root','get','/',200)
- cats=check('categories','get','/categorias',200).json();assert len(cats)>=5
- services=check('services','get','/servicos',200).json();assert len(services)>=15
- pros=check('professionals','get','/profissionais?limit=100',200).json();assert len(pros)>=30
- pag=check('pagination','get','/profissionais/paginados?pagina=2&por_pagina=6',200).json();assert len(pag['itens'])==6
- check('search by service','get','/profissionais?q=Higieniza%C3%A7%C3%A3o%20de%20Sof%C3%A1',200)
- assert len(client.get('/profissionais?q=Higieniza%C3%A7%C3%A3o%20de%20Sof%C3%A1').json())==2
- check('filter by category','get','/profissionais?categoria=Tecnologia',200)
- assert len(client.get('/profissionais?categoria=Tecnologia').json())==6
- check('filter by region','get','/profissionais?regiao=Eus%C3%A9bio',200)
- check('sort','get','/profissionais?ordenar=nome_desc',200)
- check('invalid sort','get','/profissionais?ordenar=foo',400)
- check('unauthorized list','get','/usuarios',401)
- check('unauthorized private','get','/me/profissional',401)
- # generate a temporary account via public signup and test login
- email='teste-http@reparae.example';password='SenhaSegura123!'
- new=check('signup','post','/usuarios',201,json={'nome':'Teste HTTP','email':email,'senha':password,'tipo':'cliente'})
- login=check('login','post','/login',200,json={'email':email,'senha':password}).json()
- h={'Authorization':'Bearer '+login['access_token']}
- check('client forbidden admin','get','/usuarios',403,headers=h)
- check('client forbidden professional','get','/me/profissional',403,headers=h)
- check('client own account','get',f"/usuarios/{new.json()['id']}",200,headers=h)
- check('client forbidden other','get','/usuarios/19',403,headers=h)
- check('client requests','get','/solicitacoes',200,headers=h)
- check('chatbase signed identity','get','/chatbase-token',200,headers=h)
- check('bad password','post','/login',401,json={'email':email,'senha':'wrongpass123'})
- # verify seeded professional login via separate credential file
- import csv
- with open(root/'CREDENCIAIS_DEMONSTRACAO_PRIVADO.csv',encoding='utf-8') as f: demo=next(csv.DictReader(f))
- token=check('demo professional login','post','/login',200,json=demo).json()['access_token']
- ph={'Authorization':'Bearer '+token}
- check('professional own profile','get','/me/profissional',200,headers=ph)
- check('professional own services','get','/me/servicos',200,headers=ph)
- check('professional forbidden client create','post','/solicitacoes',403,headers=ph,json={'profissional_id':3,'servico_id':2})
- # Admin access tests use a signed token for the existing admin (no known password).
- import sqlite3
- db=sqlite3.connect(tmp/'reparae.db')
- adminid=db.execute("select id from usuarios where tipo='admin' limit 1").fetchone()[0]
- ah={'Authorization':'Bearer '+pyjwt.encode({'sub':str(adminid),'exp':9999999999},os.environ['REPARAE_SECRET_KEY'],algorithm='HS256')}
- check('admin list users','get','/usuarios',200,headers=ah)
- newcat=check('admin create category','post','/categorias',201,headers=ah,json={'nome':'Categoria Teste HTTP','descricao':'Teste'})
- catid=newcat.json()['id']
- newserv=check('admin create service','post','/servicos',201,headers=ah,json={'categoria_id':catid,'nome':'Serviço HTTP','descricao':'Teste','preco':99})
- servid=newserv.json()['id']
- check('admin update service','put',f'/servicos/{servid}',200,headers=ah,json={'preco':101})
- check('admin delete service','delete',f'/servicos/{servid}',204,headers=ah)
- check('admin delete category','delete',f'/categorias/{catid}',204,headers=ah)
- # Valid request lifecycle on isolated DB: client -> professional -> accepted -> completed
- profid=db.execute('select id from profissionais where usuario_id=(select id from usuarios where email=?)',(demo['email'],)).fetchone()[0]
- sid=db.execute('select servico_id from profissional_servicos where profissional_id=?',(profid,)).fetchone()[0]
- req=check('client creates request','post','/solicitacoes',201,headers=h,json={'profissional_id':profid,'servico_id':sid})
- reqid=req.json()['id']
- check('professional sees request','get',f'/solicitacoes/{reqid}',200,headers=ph)
- check('professional accepts request','patch',f'/solicitacoes/{reqid}/status',200,headers=ph,json={'status':'Aceita'})
- check('professional completes request','patch',f'/solicitacoes/{reqid}/status',200,headers=ph,json={'status':'Concluída'})
- check('client cannot cancel completed','patch',f'/solicitacoes/{reqid}/status',409,headers=h,json={'status':'Cancelada'})
- db.close()
- print('HTTP_REAL_DEPENDENCIES_TESTS_PASSED',count)
-finally: shutil.rmtree(tmp)
+
+def executar():
+    from fastapi.testclient import TestClient
+    from jose import jwt
+    from datetime import datetime, timedelta, timezone
+    import main, models, security
+    from database import SessionLocal
+    c = TestClient(main.app)
+    total = 0
+    def check(method, path, expected, **kwargs):
+        nonlocal total
+        r = c.request(method, path, **kwargs)
+        assert r.status_code == expected, (method, path, r.status_code, expected)
+        total += 1
+        print('OK', method, path, expected)
+        return r.json() if r.content else None
+    password = 'TesteSeguro123!'
+    with SessionLocal() as db:
+        db.add(models.Usuario(nome='Admin Teste',email='admin@example.com',senha=security.hash_senha(password),tipo='admin')); db.commit()
+    def login(email):
+        return {'Authorization':'Bearer '+check('POST','/login',200,json={'email':email,'senha':password})['access_token']}
+    def signup(email, nome, tipo='cliente'):
+        d=dict(email=email,nome=nome,tipo=tipo,senha=password)
+        if tipo=='profissional': d.update(telefone='85999999999',especialidade='Tecnologia')
+        return check('POST','/usuarios',201,json=d)
+    ah=login('admin@example.com')
+    u=signup('cliente@example.com','Cliente Teste'); h=login('cliente@example.com')
+    v=signup('outro@example.com','Outro Cliente'); vh=login('outro@example.com')
+    check('GET','/usuarios',401); check('GET','/usuarios',403,headers=h); check('GET','/usuarios',200,headers=ah)
+    check('GET',f'/usuarios/{v["id"]}',403,headers=h)
+    check('PUT',f'/usuarios/{u["id"]}',400,headers=h,json={'tipo':'profissional'})
+    check('POST','/usuarios',422,json=dict(nome='Admin Falso',email='fake@example.com',senha=password,tipo='admin'))
+    check('POST','/usuarios',422,json=dict(nome='Senha Longa',email='long@example.com',senha='é'*40,tipo='cliente'))
+    for token in ['invalido',jwt.encode({'sub':str(u['id'])},security.SECRET_KEY,algorithm='HS256'),jwt.encode({'sub':str(u['id']),'exp':datetime.now(timezone.utc)-timedelta(seconds=10)},security.SECRET_KEY,algorithm='HS256')]:
+        check('GET','/usuarios',401,headers={'Authorization':'Bearer '+token})
+    cat=check('POST','/categorias',201,headers=ah,json={'nome':'Tecnologia'})
+    def service(nome): return check('POST','/servicos',201,headers=ah,json={'nome':nome,'categoria_id':cat['id'],'preco':80})['id']
+    sid=service('Manutenção'); sid2=service('Formatação')
+    check('POST','/servicos',403,headers=h,json={'nome':'Teste','categoria_id':cat['id'],'preco':80})
+    check('PUT',f'/servicos/{sid2}',200,headers=ah,json={'preco':90})
+    pros=[]
+    for i,nome in enumerate(['Ana','Bruno','Carla','Diego']):
+        email=f'prof{i}@example.com'; signup(email,nome,'profissional'); ph=login(email)
+        p=check('GET','/me/profissional',200,headers=ph); pros.append((p['id'],ph))
+        check('PUT','/me/profissional',200,headers=ph,json={'nome':nome,'regiao':'Eusébio'})
+        if i<3: check('POST',f'/me/servicos/{sid}',201,headers=ph)
+    pid,ph=pros[0]; other,oh=pros[1]; empty,eh=pros[3]
+    check('GET','/me/servicos',403,headers=h); check('GET','/usuarios',403,headers=ph)
+    check('POST',f'/me/servicos/{sid}',409,headers=ph)
+    check('POST',f'/me/servicos/{sid2}',201,headers=ph)
+    check('DELETE',f'/me/servicos/{sid2}',204,headers=ph)
+    assert [x['id'] for x in check('GET',f'/profissionais/{pid}/servicos',200)]==[sid]
+    assert check('GET',f'/profissionais/{empty}/servicos',200)==[]
+    a=check('GET','/profissionais/paginados?por_pagina=2&pagina=1',200); b=check('GET','/profissionais/paginados?por_pagina=2&pagina=2',200)
+    assert a['total']==4 and a['total_paginas']==2 and len({x['id'] for x in a['itens']+b['itens']})==4
+    assert [x['nome'] for x in check('GET','/profissionais?ordenar=nome_desc',200)]==['Diego','Carla','Bruno','Ana']
+    assert len(check('GET','/profissionais',200,params={'q':'Manutenção','categoria':'Tecnologia','regiao':'Eusébio'}))==3
+    check('GET','/profissionais/paginados?pagina=0',400); check('GET','/profissionais?ordenar=invalid',400)
+    def request(p,s,headers=h,expected=201): return check('POST','/solicitacoes',expected,headers=headers,json={'profissional_id':p,'servico_id':s})
+    request(empty,sid,expected=400); request(pid,sid2,expected=400); request(pid,sid,ph,403)
+    rid=request(pid,sid)['id']; path=f'/solicitacoes/{rid}'
+    check('GET',path,403,headers=vh); check('GET',path,403,headers=oh); check('GET',path,200,headers=ph)
+    check('PATCH',path+'/status',409,headers=h,json={'status':'Aceita'})
+    check('PATCH',path+'/status',200,headers=ph,json={'status':'Aceita'})
+    check('PATCH',path+'/status',200,headers=ph,json={'status':'Concluída'})
+    check('PATCH',path+'/status',409,headers=h,json={'status':'Cancelada'})
+    rid2=request(pid,sid)['id']; check('PATCH',f'/solicitacoes/{rid2}/status',200,headers=h,json={'status':'Cancelada'})
+    check('DELETE',f'/servicos/{sid2}',204,headers=ah)
+    print(f'{total} verificações HTTP aprovadas, além das asserções de conteúdo.')
+
+if __name__=='__main__':
+    if '--isolado' in sys.argv:
+        if os.getenv('DATABASE_URL'): raise SystemExit('Banco externo proibido nos testes')
+        executar()
+    else:
+        with tempfile.TemporaryDirectory() as tmp:
+            for p in Path(__file__).parent.glob('*.py'): shutil.copy2(p,tmp)
+            env=os.environ.copy(); env.pop('DATABASE_URL',None); env['REPARAE_SECRET_KEY']='chave-exclusiva-de-teste-'+ 'x'*48
+            subprocess.run([sys.executable,str(Path(tmp)/Path(__file__).name),'--isolado'],cwd=tmp,env=env,check=True)

@@ -120,11 +120,11 @@ async function escolherServicoSolicitacao(profissionalId, botao) {
   let usuario = null;
   try { usuario = JSON.parse(sessionStorage.getItem("usuario") || "null"); } catch (_) {}
   if (usuario?.tipo !== "cliente") { alert("Entre com uma conta de cliente para solicitar serviços."); return; }
-  const servicos = await fetch(`${API_BASE_URL}/servicos?limit=100`).then(async r => {
+  const servicos = await fetch(`${API_BASE_URL}/profissionais/${encodeURIComponent(profissionalId)}/servicos`).then(async r => {
     if (!r.ok) throw new Error("Não foi possível carregar os serviços disponíveis.");
     return r.json();
   });
-  if (!servicos.length) throw new Error("Ainda não há serviços cadastrados.");
+  if (!servicos.length) throw new Error("Este profissional ainda não oferece serviços.");
   const painel = document.createElement("div");
   painel.className = "cartao";
   painel.style.cssText = "padding:16px;margin-top:16px";
@@ -238,7 +238,9 @@ saudacao.textContent = usuarioLogado?.nome || "Cliente";
   }
 
   const listaHome = document.getElementById("listaSolicitacoesHome");
-  if (listaHome) listaHome.innerHTML = htmlEstadoVazio("inbox", "Nenhuma solicitação disponível. O acompanhamento será ativado quando a API de solicitações estiver pronta.");
+  if (listaHome) requisicaoAutenticada("/solicitacoes").then(itens => {
+    listaHome.innerHTML = itens.length ? itens.slice(0, 5).map(i => cartaoSolicitacao(i)).join("") : htmlEstadoVazio("inbox", "Nenhuma solicitação disponível.");
+  }).catch(e => { listaHome.textContent = e.message; });
 
   renderizarAvaliacoesEm("gradeAvaliacoesApp");
 }
@@ -672,17 +674,20 @@ async function configurarServicosProfissional() {
       requisicaoAutenticada("/me/servicos"), fetch(`${API_BASE_URL}/servicos`).then(r => { if (!r.ok) throw Error("Falha ao carregar serviços"); return r.json(); })
     ]);
     const categorias = await fetch(`${API_BASE_URL}/categorias`).then(r => { if (!r.ok) throw Error("Falha ao carregar categorias"); return r.json(); });
-    seletor.innerHTML = '<option value="">Escolha uma categoria...</option>' + categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join("");
+    const categoriaAnterior = seletor.value;
+    seletor.innerHTML = '<option value="">Escolha uma categoria...</option>' + categorias.map(c => `<option value="${c.id}">${escaparSolicitacao(c.nome)}</option>`).join("");
+    seletor.value = categoriaAnterior;
+    if (seletor.selectedIndex < 0) seletor.selectedIndex = 0;
     renderizar();
   }
   function renderizar() {
-    listaAtuais.innerHTML = atuais.length ? atuais.map(s => `<span class="chip-removivel">${s.nome} <button type="button" data-remover="${s.id}" aria-label="Remover ${s.nome}">✕</button></span>`).join("") : htmlEstadoVazio("handyman", "Você ainda não adicionou nenhum serviço.");
+    listaAtuais.innerHTML = atuais.length ? atuais.map(s => `<span class="chip-removivel">${escaparSolicitacao(s.nome)} <button type="button" data-remover="${s.id}" aria-label="Remover ${escaparSolicitacao(s.nome)}">✕</button></span>`).join("") : htmlEstadoVazio("handyman", "Você ainda não adicionou nenhum serviço.");
     listaAtuais.querySelectorAll("[data-remover]").forEach(b => b.addEventListener("click", async () => {
       try { await requisicaoAutenticada(`/me/servicos/${b.dataset.remover}`, {method:"DELETE"}); await carregar(); }
       catch(e) { alert(e.message); }
     }));
     const disponiveisCategoria = catalogo.filter(s => String(s.categoria_id) === seletor.value && !atuais.some(a => a.id === s.id));
-    disponiveis.innerHTML = disponiveisCategoria.map(s => `<button type="button" class="servico-checkbox" data-adicionar="${s.id}">${s.nome}</button>`).join("");
+    disponiveis.innerHTML = disponiveisCategoria.map(s => `<button type="button" class="servico-checkbox" data-adicionar="${s.id}">${escaparSolicitacao(s.nome)}</button>`).join("");
     disponiveis.querySelectorAll("[data-adicionar]").forEach(b => b.addEventListener("click", async () => {
       try { await requisicaoAutenticada(`/me/servicos/${b.dataset.adicionar}`, {method:"POST"}); await carregar(); }
       catch(e) { alert(e.message); }

@@ -1,6 +1,6 @@
 # Reparaê — Precisou? Reparaê.
 
-Marketplace acadêmico de serviços. Front-end em HTML, CSS e JavaScript; API em FastAPI/SQLAlchemy; banco SQLite.
+Marketplace acadêmico de serviços. Front-end em HTML, CSS e JavaScript; API em FastAPI/SQLAlchemy; banco PostgreSQL (Neon) em produção e SQLite local.
 
 ## Executar localmente
 
@@ -26,7 +26,7 @@ Marketplace acadêmico de serviços. Front-end em HTML, CSS e JavaScript; API em
 
 ## Chatbase
 
-`GET /chatbase-token` requer Bearer JWT e `CHATBASE_IDENTITY_SECRET` no ambiente. Sem o segredo, retorna HTTP 503, sem afetar as demais páginas. Configure o segredo de verificação de identidade fornecido pelo Chatbase, **não** a chave pública do widget. Confirme o formato de identidade exigido pelo seu painel Chatbase antes de ativar em produção.
+O front-end contém o widget Chatbase. A rota de identificação `/chatbase-token` não está implementada no snapshot atual; identificação autenticada não está validada.
 
 ## Testes e limitações
 
@@ -46,6 +46,14 @@ Marketplace acadêmico de serviços. Front-end em HTML, CSS e JavaScript; API em
 A cópia de demonstração inclui cinco categorias, quinze serviços e trinta contas fictícias de profissionais, dois para cada serviço. Veja `RELATORIO_FINAL_REVISAO_2026-11-21.md` para resultados, limitações e procedimentos. O DER lógico atualizado está em `BancodeDados/DER_ATUALIZADO_2026-11-21.md`.
 
 Para validar o banco: `cd API && python testar_catalogo.py`.
-Para executar testes HTTP com as bibliotecas reais: `pip install -r requirements.txt -r requirements-test.txt` e `python testar_api_integrada.py` (necessita credenciais de demonstração entregues separadamente).
+Para executar testes HTTP com as bibliotecas reais: `pip install -r requirements.txt -r requirements-test.txt` e `python testar_api_integrada.py` (cria contas fictícias em banco temporário, sem credenciais externas).
 
 **Atenção:** os dados de profissionais são fictícios e não representam prestadores de serviço reais.
+
+## Produção e recuperação do catálogo
+
+- Front: https://reparae.vercel.app (Vercel, raiz `front`).
+- API: https://reparae-api.onrender.com/docs (Render, raiz `API`, comando `uvicorn main:app --host 0.0.0.0 --port $PORT`).
+- PostgreSQL: Neon, `DATABASE_URL` e `REPARAE_SECRET_KEY` somente no ambiente do servidor; configure `REPARAE_ENV=production`.
+- Após backup do Neon, configure `DATABASE_URL` em terminal privado e execute `python importar_catalogo.py --origem CAMINHO_DO_SQLITE` para prévia. Só após revisar, repita com `--aplicar`. Não importa solicitações, contas reais ou senhas antigas. Contas fictícias novas recebem senhas aleatórias não divulgadas.
+- Publique API antes do front-end, pois o seletor de serviços depende de `GET /profissionais/{id}/servicos`.

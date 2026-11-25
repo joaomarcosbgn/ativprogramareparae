@@ -393,6 +393,15 @@ def obter_profissional_publico(profissional_id: int, db: Session = Depends(get_d
     return profissional
 
 
+@app.get("/profissionais/{profissional_id}/servicos", response_model=list[schemas.ServicoOut])
+def servicos_profissional_publico(profissional_id: int, db: Session = Depends(get_db)):
+    if not crud.obter_profissional_publico(db, profissional_id):
+        raise HTTPException(status_code=404, detail="Profissional não encontrado.")
+    return db.query(models.Servico).join(models.ProfissionalServico).filter(
+        models.ProfissionalServico.profissional_id == profissional_id
+    ).order_by(models.Servico.nome, models.Servico.id).all()
+
+
 # ============================================================
 # CATEGORIAS
 # CONSULTAS PÚBLICAS; ALTERAÇÕES SOMENTE ADMINISTRATIVAS
@@ -718,9 +727,7 @@ def criar_solicitacao(
         raise HTTPException(status_code=404, detail="Profissional indisponível ou não encontrado.")
     if not db.get(models.Servico, dados.servico_id):
         raise HTTPException(status_code=404, detail="Serviço não encontrado.")
-    # Compatibilidade: profissionais antigos sem vínculos ainda podem receber solicitações.
-    vinculos = db.query(models.ProfissionalServico).filter_by(profissional_id=profissional.id).count()
-    if vinculos and not db.get(models.ProfissionalServico, (profissional.id, dados.servico_id)):
+    if not db.get(models.ProfissionalServico, (profissional.id, dados.servico_id)):
         raise HTTPException(status_code=400, detail="O profissional não oferece esse serviço.")
     item = models.Solicitacao(
         usuario_id=usuario.id,
@@ -790,7 +797,11 @@ def atualizar_status_solicitacao(
         permitido = False
     if not permitido:
         raise HTTPException(status_code=409, detail="Transição de status não permitida.")
-    item.status = dados.status
+    anterior = item.status
+    alterados = db.query(models.Solicitacao).filter_by(id=item.id, status=anterior).update({"status": dados.status}, synchronize_session=False)
+    if alterados != 1:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Status alterado por outra operação.")
     db.commit()
     db.refresh(item)
     return item
@@ -832,6 +843,8 @@ def meu_perfil_profissional(db: Session = Depends(get_db), usuario=Depends(obter
 def editar_meu_perfil_profissional(dados: PerfilExtraEntrada, db: Session = Depends(get_db), usuario=Depends(obter_usuario_atual)):
     profissional = _meu_profissional(db, usuario)
     usuario.nome = dados.nome.strip()
+    if len(usuario.nome) < 2:
+        raise HTTPException(status_code=422, detail="Nome inválido.")
     extra = db.get(models.PerfilProfissionalExtra, profissional.id)
     if extra is None:
         extra = models.PerfilProfissionalExtra(profissional_id=profissional.id)
@@ -859,7 +872,11 @@ def vincular_meu_servico(servico_id: int, db: Session = Depends(get_db), usuario
     if vinculo:
         raise HTTPException(status_code=409, detail="Serviço já vinculado.")
     db.add(models.ProfissionalServico(profissional_id=profissional.id, servico_id=servico_id))
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Não foi possível vincular o serviço.")
     return {"mensagem": "Serviço vinculado", "servico_id": servico_id}
 
 

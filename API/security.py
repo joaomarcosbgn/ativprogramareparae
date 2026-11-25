@@ -34,10 +34,10 @@ def hash_senha(senha: str) -> str:
 
 def verificar_senha(senha: str, senha_hash: str) -> bool:
     """Confere se a senha bate com o hash armazenado."""
-    return bcrypt.checkpw(
-        senha.encode("utf-8"),
-        senha_hash.encode("utf-8"),
-    )
+    try:
+        return bcrypt.checkpw(senha.encode("utf-8"), senha_hash.encode("utf-8"))
+    except (ValueError, TypeError):
+        return False
 
 
 def criar_token_acesso(usuario_id: int) -> str:
@@ -76,6 +76,7 @@ def obter_id_usuario_token(
             token,
             SECRET_KEY,
             algorithms=[ALGORITHM],
+            options={"require_exp": True, "require_sub": True},
         )
 
         usuario_id = payload.get("sub")
