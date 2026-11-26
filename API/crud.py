@@ -303,28 +303,82 @@ def _profissional_publico(profissional, db):
     }
 
 
+
 def _consulta_profissionais_filtrada(db, q="", categoria="", regiao=""):
-    """Consulta compartilhada para resultados e contagem, sem divergir filtros."""
-    consulta = (db.query(models.Profissional)
-                .join(models.Usuario)
-                .filter(models.Profissional.disponivel == 1,
-                        models.Usuario.tipo == "profissional"))
+    """Consulta compartilhada para resultados e contagem, ignorando acentos no PostgreSQL."""
+    consulta = (
+        db.query(models.Profissional)
+        .join(models.Usuario)
+        .filter(
+            models.Profissional.disponivel == 1,
+            models.Usuario.tipo == "profissional",
+        )
+    )
+
     if q.strip():
         termo = f"%{q.strip()}%"
-        # Permite pesquisar pelo nome do serviço (não apenas pelo nome do profissional).
-        servicos_correspondentes = (db.query(models.ProfissionalServico.profissional_id)
-            .join(models.Servico, models.Servico.id == models.ProfissionalServico.servico_id)
-            .filter(models.Servico.nome.ilike(termo)))
-        consulta = consulta.filter(or_(models.Usuario.nome.ilike(termo),
-                                       models.Profissional.especialidade.ilike(termo),
-                                       models.Profissional.id.in_(servicos_correspondentes)))
+
+        if db.bind.dialect.name == "postgresql":
+            nome = func.unaccent(models.Usuario.nome)
+            especialidade = func.unaccent(models.Profissional.especialidade)
+            nome_servico = func.unaccent(models.Servico.nome)
+            termo_busca = func.unaccent(termo)
+
+            servicos_correspondentes = (
+                db.query(models.ProfissionalServico.profissional_id)
+                .join(
+                    models.Servico,
+                    models.Servico.id == models.ProfissionalServico.servico_id,
+                )
+                .filter(nome_servico.ilike(termo_busca))
+            )
+
+            consulta = consulta.filter(
+                or_(
+                    nome.ilike(termo_busca),
+                    especialidade.ilike(termo_busca),
+                    models.Profissional.id.in_(servicos_correspondentes),
+                )
+            )
+        else:
+            servicos_correspondentes = (
+                db.query(models.ProfissionalServico.profissional_id)
+                .join(
+                    models.Servico,
+                    models.Servico.id == models.ProfissionalServico.servico_id,
+                )
+                .filter(models.Servico.nome.ilike(termo))
+            )
+
+            consulta = consulta.filter(
+                or_(
+                    models.Usuario.nome.ilike(termo),
+                    models.Profissional.especialidade.ilike(termo),
+                    models.Profissional.id.in_(servicos_correspondentes),
+                )
+            )
+
     if categoria.strip():
-        consulta = consulta.filter(models.Profissional.especialidade.ilike(categoria.strip()))
+        consulta = consulta.filter(
+            models.Profissional.especialidade.ilike(categoria.strip())
+        )
+
     if regiao.strip():
-        consulta = (consulta.join(models.PerfilProfissionalExtra,
-                                 models.PerfilProfissionalExtra.profissional_id == models.Profissional.id)
-                    .filter(models.PerfilProfissionalExtra.regiao.ilike(f"%{regiao.strip()}%")))
+        consulta = (
+            consulta.join(
+                models.PerfilProfissionalExtra,
+                models.PerfilProfissionalExtra.profissional_id
+                == models.Profissional.id,
+            )
+            .filter(
+                models.PerfilProfissionalExtra.regiao.ilike(
+                    f"%{regiao.strip()}%"
+                )
+            )
+        )
+
     return consulta
+
 
 
 def contar_profissionais(db, q="", categoria="", regiao=""):
