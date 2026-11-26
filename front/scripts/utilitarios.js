@@ -12,7 +12,9 @@
  */
 function mostrarMensagem(elemento, texto, tipo) {
   if (!elemento) return;
-  elemento.textContent = texto;
+  elemento.textContent = Array.isArray(texto)
+    ? texto.map(item => typeof item?.msg === 'string' ? `${(item.loc || []).filter(x => x !== 'body').join('.')}: ${item.msg}` : 'Dados inválidos.').join(' | ')
+    : typeof texto === 'string' ? texto : 'Não foi possível concluir a operação. Verifique os dados.';
   elemento.classList.remove("sucesso", "erro");
   elemento.classList.add(tipo);
 }

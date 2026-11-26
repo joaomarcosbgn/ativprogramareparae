@@ -106,6 +106,11 @@ async function requisicaoAutenticada(caminho, opcoes = {}) {
   });
   const dados = await resposta.json().catch(() => null);
   if (!resposta.ok) {
+    if (resposta.status === 401 && sessionStorage.getItem("token") === token) {
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("usuario");
+      window.location.replace("login.html");
+    }
     const detalhe = dados?.detail;
     throw new Error(typeof detalhe === "string" ? detalhe : `Falha na operação (${resposta.status}).`);
   }

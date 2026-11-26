@@ -336,10 +336,10 @@ def pesquisar_profissionais(db, q="", categoria="", regiao="", ordenar="nome_asc
     """Filtra, ordena e pagina profissionais disponíveis diretamente no banco."""
     consulta = _consulta_profissionais_filtrada(db, q, categoria, regiao)
     ordens = {
-        "nome_asc": (models.Usuario.nome.asc(), models.Profissional.id.asc()),
-        "nome_desc": (models.Usuario.nome.desc(), models.Profissional.id.asc()),
-        "especialidade_asc": (models.Profissional.especialidade.asc(), models.Usuario.nome.asc(), models.Profissional.id.asc()),
-        "especialidade_desc": (models.Profissional.especialidade.desc(), models.Usuario.nome.asc(), models.Profissional.id.asc()),
+        "nome_asc": (func.lower(models.Usuario.nome).asc(), models.Profissional.id.asc()),
+        "nome_desc": (func.lower(models.Usuario.nome).desc(), models.Profissional.id.asc()),
+        "especialidade_asc": (models.Profissional.especialidade.asc(), func.lower(models.Usuario.nome).asc(), models.Profissional.id.asc()),
+        "especialidade_desc": (models.Profissional.especialidade.desc(), func.lower(models.Usuario.nome).asc(), models.Profissional.id.asc()),
     }
     return [_profissional_publico(p, db) for p in consulta.order_by(*ordens.get(ordenar, ordens["nome_asc"])).offset(skip).limit(limit).all()]
 
