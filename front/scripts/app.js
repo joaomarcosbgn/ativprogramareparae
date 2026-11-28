@@ -143,7 +143,7 @@ async function escolherServicoSolicitacao(profissionalId, botao) {
     confirmar.disabled = true;
     try {
       const item = await requisicaoAutenticada("/solicitacoes", { method: "POST", body: JSON.stringify({ profissional_id: profissionalId, servico_id }) });
-      window.location.href = `solicitacao-detalhe.html?id=${item.id}`;
+      window.location.href = `pagamento.html?solicitacao=${item.id}`;
     } catch (erro) { painel.querySelector("#erroSolicitacao").textContent = erro.message; confirmar.disabled = false; }
   });
 }
@@ -737,6 +737,18 @@ async function configurarSolicitacaoDetalhe() {
         console.warn("Não foi possível carregar os nomes:", erro);
       }
 
+      let linhaPagamento = "";
+      if (usuario?.tipo === "cliente" || usuario?.tipo === "profissional") {
+        try {
+          const pg = await requisicaoAutenticada(`/pagamentos/solicitacao/${id}`);
+          const rot = { pago: "Pago", pendente: "Aguardando pagamento", criando: "Aguardando pagamento" }[pg.status] || "Não pago";
+          linhaPagamento = `<p>Pagamento: <strong>${rot}</strong> · ${formatarMoeda(pg.valor)}</p>`;
+          if (usuario.tipo === "cliente" && pg.status !== "pago") linhaPagamento += `<a class="btn btn-primario" href="pagamento.html?solicitacao=${id}">Pagar com Pix</a>`;
+        } catch (_) {
+          if (usuario?.tipo === "cliente" && ["Pendente", "Aceita", "Concluída"].includes(item.status)) linhaPagamento = `<a class="btn btn-primario" href="pagamento.html?solicitacao=${id}">Pagar com Pix</a>`;
+        }
+      }
+
       const acoes =
         usuario?.tipo === "cliente" && item.status === "Pendente"
           ? ["Cancelada"]
@@ -757,6 +769,8 @@ async function configurarSolicitacaoDetalhe() {
         </p>
 
         <p>Data: ${escaparSolicitacao(item.data)}</p>
+
+        ${linhaPagamento}
 
         <div id="acoesSolicitacao">
           ${acoes.map(a => `

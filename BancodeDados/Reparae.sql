@@ -133,4 +133,23 @@ CREATE INDEX idx_solicitacoes_profissional
     ON solicitacoes(profissional_id);
 CREATE INDEX idx_solicitacoes_servico
     ON solicitacoes(servico_id);
+-- Pagamentos Pix (Mercado Pago). UNIQUE(solicitacao_id) impede cobrança duplicada.
+CREATE TABLE IF NOT EXISTS pagamentos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    solicitacao_id INTEGER NOT NULL UNIQUE,
+    valor_centavos INTEGER NOT NULL CHECK (valor_centavos > 0),
+    status TEXT NOT NULL DEFAULT 'criando'
+        CHECK (status IN ('criando','pendente','pago','expirado','rejeitado','cancelado','estornado','divergente')),
+    tentativa INTEGER NOT NULL DEFAULT 1,
+    mp_payment_id TEXT UNIQUE,
+    qr_code TEXT,
+    qr_code_base64 TEXT,
+    expiracao TEXT NOT NULL,
+    criado_em TEXT NOT NULL,
+    atualizado_em TEXT NOT NULL,
+    pago_em TEXT,
+    consultado_em REAL,
+    FOREIGN KEY (solicitacao_id) REFERENCES solicitacoes(id) ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
 COMMIT;

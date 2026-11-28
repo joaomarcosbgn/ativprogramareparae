@@ -6,12 +6,8 @@
 // Depende de: config.js, utilitarios.js, dados.js.
 //
 // COMO FUNCIONA HOJE:
-//  - Esta tela é SOMENTE CONSULTA. Não existe gateway de pagamento nem
-//    endpoint de pagamentos no backend ainda; por isso não há botão
-//    "Pagar" — ele seria um botão que finge funcionar.
-//  - A página tenta GET /pagamentos. Se o servidor não responder como
-//    esperado, entra em MODO DEMONSTRAÇÃO com valores fictícios e um aviso
-//    fixo na tela. Contrato em INTEGRACAO-BACKEND.md.
+//  - Histórico via GET /pagamentos (autenticado). Pagamento Pix real em
+//    pagamento.html. Se a API falhar, cai no MODO DEMONSTRAÇÃO com aviso.
 // ==========================================================================
 
 const pagamentosPagina = { tipo: "cliente", modo: "demo", itens: [], filtro: "todos" };
@@ -34,7 +30,8 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 async function iniciarPagamentos() {
-  const resultado = await chamarApi("/pagamentos");
+  let resultado = { ok: false, dados: null };
+  try { resultado = { ok: true, dados: await requisicaoAutenticada("/pagamentos") }; } catch (_) {}
 
   if (resultado.ok && Array.isArray(resultado.dados)) {
     pagamentosPagina.modo = "api";
@@ -107,7 +104,7 @@ function renderizarListaPagamentos() {
         <div class="card-solicitacao-meta">
           <strong class="pagamento-valor">${formatarMoeda(p.valor)}</strong>
           <span class="data">${formatarData(p.data)}</span>
-          <span class="status-badge ${CLASSE_STATUS_PAGAMENTO[status]}">${r[status]}</span>
+          <span class="status-badge ${CLASSE_STATUS_PAGAMENTO[status]}">${r[status]}</span>${pagamentosPagina.tipo === "cliente" && status === "pendente" && p.solicitacao_id ? `<a class="btn btn-primario" href="pagamento.html?solicitacao=${Number(p.solicitacao_id)}">Pagar</a>` : ""}
         </div>
       </div>
     `;

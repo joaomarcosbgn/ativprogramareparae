@@ -3,6 +3,7 @@ from sqlalchemy import (
     Integer,
     String,
     Float,
+    Text,
     ForeignKey,
     CheckConstraint,
 )
@@ -180,3 +181,38 @@ class PerfilProfissionalExtra(Base):
     biografia = Column(String, nullable=False, default="")
     experiencia = Column(String, nullable=False, default="")
     regiao = Column(String, nullable=False, default="")
+
+
+class Pagamento(Base):
+    """Cobrança Pix (Mercado Pago). Uma linha por solicitação (UNIQUE) impede duplicidade."""
+    __tablename__ = "pagamentos"
+
+    id = Column(Integer, primary_key=True, index=True)
+    solicitacao_id = Column(
+        Integer,
+        ForeignKey("solicitacoes.id", onupdate="CASCADE", ondelete="RESTRICT"),
+        nullable=False,
+        unique=True,
+    )
+    valor_centavos = Column(Integer, nullable=False)
+    status = Column(String, nullable=False, default="criando")
+    tentativa = Column(Integer, nullable=False, default=1)
+    mp_payment_id = Column(String, nullable=True, unique=True)
+    qr_code = Column(Text, nullable=True)
+    qr_code_base64 = Column(Text, nullable=True)
+    expiracao = Column(String, nullable=False)
+    criado_em = Column(String, nullable=False)
+    atualizado_em = Column(String, nullable=False)
+    pago_em = Column(String, nullable=True)
+    consultado_em = Column(Float, nullable=True)
+
+    __table_args__ = (
+        CheckConstraint("valor_centavos > 0", name="ck_pagamento_valor"),
+        CheckConstraint(
+            "status IN ('criando', 'pendente', 'pago', 'expirado', "
+            "'rejeitado', 'cancelado', 'estornado', 'divergente')",
+            name="ck_pagamento_status",
+        ),
+    )
+
+    solicitacao = relationship("Solicitacao")

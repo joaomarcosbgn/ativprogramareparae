@@ -93,6 +93,10 @@ def exigir_proprio_usuario_ou_admin(
     return usuario_atual
 
 
+import pagamentos_rotas
+app.include_router(pagamentos_rotas.criar_router(obter_usuario_atual))
+
+
 # ============================================================
 # ROTA INICIAL
 # ============================================================
@@ -803,6 +807,11 @@ def atualizar_status_solicitacao(
         db.rollback()
         raise HTTPException(status_code=409, detail="Status alterado por outra operação.")
     db.commit()
+    if dados.status in ("Cancelada", "Recusada"):
+        try:
+            pagamentos_rotas.cancelar_pagamento_pendente(db, item.id)
+        except Exception:
+            db.rollback()
     db.refresh(item)
     return item
 

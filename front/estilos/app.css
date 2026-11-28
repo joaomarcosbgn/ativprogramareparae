@@ -901,3 +901,19 @@ body.corpo-app {
 .paginacao-busca .btn { min-width: 42px; min-height: 42px; padding: 8px 12px; }
 .paginacao-busca .pagina-ativa { background: var(--azul-principal, #1976d2); color: #fff; border-color: transparent; }
 .paginacao-busca .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+
+/* Pagamento Pix (pagamento.html) */
+.pix-cartao { padding: var(--espaco-5); text-align: center; }
+.pix-cartao h1 { font-size: var(--texto-xl); margin-bottom: var(--espaco-1); }
+.pix-servico { color: var(--texto-secundario); margin-bottom: var(--espaco-2); overflow-wrap: anywhere; }
+.pix-valor { font-size: var(--texto-2xl); font-weight: var(--peso-bold); color: var(--azul-escuro); margin-bottom: var(--espaco-4); }
+.pix-qr { display: block; width: min(100%, 260px); aspect-ratio: 1; margin: 0 auto var(--espaco-4); padding: var(--espaco-2); background: var(--branco); border: 1px solid var(--borda-clara); border-radius: var(--raio-md); }
+.pix-codigo { width: 100%; min-height: 84px; resize: none; padding: var(--espaco-3); border: 1px solid var(--borda-clara); border-radius: var(--raio-sm); background: var(--cinza-claro); color: var(--texto-principal); font: inherit; font-size: var(--texto-xs); word-break: break-all; margin-bottom: var(--espaco-3); }
+.pix-status { display: inline-flex; align-items: center; gap: var(--espaco-2); padding: var(--espaco-2) var(--espaco-4); border-radius: var(--raio-pill); font-weight: var(--peso-semibold); font-size: var(--texto-sm); margin-bottom: var(--espaco-4); background: var(--laranja-suave); color: var(--laranja-hover); }
+.pix-status.pago { background: #E3F6E8; color: #1B7A3A; }
+.pix-status.falha { background: #FDE8E8; color: #B3261E; }
+.pix-expira { color: var(--texto-secundario); font-size: var(--texto-sm); margin-top: var(--espaco-3); }
+.pix-acoes { display: grid; gap: var(--espaco-2); margin-top: var(--espaco-3); }
+.pix-aviso { color: var(--texto-secundario); font-size: var(--texto-xs); margin-top: var(--espaco-3); }
+@media (max-width: 480px) { .pix-cartao { padding: var(--espaco-4); } .pix-valor { font-size: var(--texto-xl); } }

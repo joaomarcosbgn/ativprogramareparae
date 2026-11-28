@@ -44,9 +44,7 @@ Endpoints (datas em ISO 8601; mensagens em ordem crescente):
 Tabela sugerida: `pagamentos(id, solicitacao_id, cliente_id, profissional_id, valor NUMERIC(10,2), status, criado_em, pago_em NULL, metodo, id_gateway)`.
 - `GET /pagamentos` → `[{ id, servico, contraparte:{nome}, valor, status:"pendente"|"pago"|"cancelado", data }]`.
   O servidor decide pelo usuário logado se é cliente ou profissional; `contraparte` é a outra pessoa.
-- A tela é **somente consulta**. Não há botão "Pagar" porque não existe gateway
-  (Pix/cartão: Mercado Pago, Stripe etc.). Cobrança, repasse ao profissional,
-  estorno e webhooks são trabalho de backend.
+- **Implementado (Pix/Mercado Pago):** `POST /pagamentos/pix`, `GET /pagamentos/solicitacao/{id}`, `GET /pagamentos` (autenticados) e `POST /webhooks/mercadopago` (assinatura HMAC). Tela: `pagamento.html`.
 
 ## 4. Pendências já existentes (fora deste pedido)
 - `categoria`, `serviços`, `área` e fotos/vídeos do cadastro de profissional também não são gravados (`POST /profissionais/{id}/midias` não existe).
