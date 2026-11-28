@@ -1,2 +1,15 @@
 {
+  "liveServer.settings.ignoreFiles": [
+    ".vscode/**",
+    "**/*.scss",
+    "**/*.sass",
+    "**/*.ts",
+    "**/API/**",
+    "**/BancodeDados/**",
+    "**/*.db",
+    "**/*.db-*",
+    "**/*.sqlite",
+    "**/*.sqlite-*",
+    "**/__pycache__/**"
+  ]
 }

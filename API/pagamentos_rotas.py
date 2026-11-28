@@ -55,10 +55,7 @@ def _expiracao_mp(d: datetime) -> str:
 
 
 def _notification_url() -> str:
-    return os.getenv(
-        "MERCADOPAGO_NOTIFICATION_URL",
-        "https://reparae-api.onrender.com/webhooks/mercadopago",
-    )
+    return os.getenv("MERCADOPAGO_NOTIFICATION_URL", "").strip() or "https://reparae-api.onrender.com/webhooks/mercadopago"
 
 
 def _referencia(pag) -> str:
@@ -166,7 +163,7 @@ def _emitir_cobranca(db: Session, pag, usuario, servico) -> None:
             raise mp.MercadoPagoErro("Resposta do MP sem QR Code Pix.")
     except mp.MercadoPagoNaoConfigurado:
         log.error("MERCADOPAGO_ACCESS_TOKEN ausente.")
-        raise HTTPException(503, "Pagamento Pix indisponível no momento.")
+        raise HTTPException(503, "Pix não configurado no servidor. Contate o suporte.")
     except mp.MercadoPagoErro as erro:
         log.error("Falha ao criar Pix (pagamento %s): %s", pag.id, erro)
         raise HTTPException(502, "Não foi possível gerar a cobrança Pix agora. Tente novamente.")
@@ -252,6 +249,9 @@ def criar_router(obter_usuario_atual) -> APIRouter:
             raise HTTPException(404, "Solicitação não encontrada.")
         if sol.status not in SOLICITACAO_PAGAVEL:
             raise HTTPException(409, "Esta solicitação não aceita pagamento.")
+        if not os.getenv("MERCADOPAGO_ACCESS_TOKEN", "").strip():
+            log.error("MERCADOPAGO_ACCESS_TOKEN ausente no processo da API.")
+            raise HTTPException(503, "Pix não configurado no servidor. Contate o suporte.")
         servico = db.get(models.Servico, sol.servico_id)
         valor = mp.centavos(servico.preco)  # valor SEMPRE vindo do banco
         if valor < 1:
@@ -298,6 +298,9 @@ def criar_router(obter_usuario_atual) -> APIRouter:
                 db.refresh(pag)
                 return _saida(db, pag)
         if pag.status == "criando":
+            if _agora() >= _parse(pag.expiracao):
+                # Não trocar a chave de idempotência sem confirmar o resultado anterior.
+                raise HTTPException(409, "Cobrança anterior expirada sem confirmação. Contate o suporte.")
             if pag.valor_centavos != valor:
                 db.execute(update(models.Pagamento).where(
                     models.Pagamento.id == pag.id, models.Pagamento.status == "criando"

@@ -5,6 +5,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 import models
+import os
+import logging
 import schemas
 import crud
 from database import engine, get_db
@@ -20,6 +22,18 @@ from security import (
 # ============================================================
 
 models.Base.metadata.create_all(bind=engine)
+
+# Migração única do catálogo acadêmico; preserva futuras escolhas dos profissionais.
+if os.getenv("REPARAE_COMPLETAR_SERVICOS", "1") == "1":
+    from completar_servicos import migrar_uma_vez
+    from database import SessionLocal
+    with SessionLocal() as sessao:
+        logging.getLogger("uvicorn.error").info("Catálogo: %s novos vínculos", migrar_uma_vez(sessao))
+logging.getLogger("uvicorn.error").info(
+    "Pix: token %s; webhook %s",
+    "configurado" if os.getenv("MERCADOPAGO_ACCESS_TOKEN", "").strip() else "ausente",
+    "configurado" if os.getenv("MERCADOPAGO_WEBHOOK_SECRET", "").strip() else "ausente",
+)
 
 app = FastAPI(
     title="Reparaê API",

@@ -11,6 +11,7 @@
   const solicitacaoId = Number(new URLSearchParams(window.location.search).get("solicitacao"));
   const INTERVALO_MS = 4000;
   let temporizador = null, contagem = null, pagamento = null;
+  let consultando = false, iniciando = false;
 
   function parar() { clearTimeout(temporizador); clearInterval(contagem); }
 
@@ -63,10 +64,10 @@
       alvo.textContent = resta > 0
         ? `Expira em ${String(Math.floor(resta / 60)).padStart(2, "0")}:${String(resta % 60).padStart(2, "0")}`
         : "Este Pix expirou. Gerando atualização…";
-      if (resta === 0) { clearInterval(contagem); atualizar(); }
+      if (resta === 0 || !Number.isFinite(fim)) { clearInterval(contagem); }
     }
-    tick();
     contagem = setInterval(tick, 1000);
+    tick();
   }
 
   async function copiar() {
@@ -79,19 +80,27 @@
   }
 
   async function atualizar() {
+    if (consultando || iniciando || !pagamento || pagamento.status !== "pendente") return;
+    clearTimeout(temporizador);
+    consultando = true;
     try {
       const p = await requisicaoAutenticada(`/pagamentos/solicitacao/${solicitacaoId}`);
       if (p.status !== (pagamento && pagamento.status) || p.status !== "pendente") render(p);
       else temporizador = setTimeout(atualizar, INTERVALO_MS);
     } catch (_) { temporizador = setTimeout(atualizar, INTERVALO_MS * 2); }
+    finally { consultando = false; }
   }
 
   async function iniciar() {
     if (!Number.isInteger(solicitacaoId) || solicitacaoId <= 0) { mensagemFalha("Solicitação inválida.", false); return; }
+    if (iniciando || consultando) return;
+    iniciando = true;
+    parar();
     raiz.innerHTML = '<div class="cartao pix-cartao"><p>Gerando cobrança Pix…</p></div>';
     try {
       render(await requisicaoAutenticada("/pagamentos/pix", { method: "POST", body: JSON.stringify({ solicitacao_id: solicitacaoId }) }));
     } catch (erro) { mensagemFalha(erro.message, true); }
+    finally { iniciando = false; }
   }
 
   document.addEventListener("visibilitychange", function () { if (!document.hidden && pagamento && pagamento.status === "pendente") { clearTimeout(temporizador); atualizar(); } });

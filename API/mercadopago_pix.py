@@ -49,8 +49,8 @@ def _requisitar(metodo, caminho, corpo=None, idempotency_key=None):
         with urllib.request.urlopen(req, timeout=TIMEOUT_SEGUNDOS) as resp:
             return json.loads(resp.read().decode("utf-8") or "{}")
     except urllib.error.HTTPError as erro:
-        detalhe = erro.read().decode("utf-8", "replace")[:500]
-        raise MercadoPagoErro(f"HTTP {erro.code}: {detalhe}", status=erro.code)
+        # Não registrar corpo remoto: pode conter dados pessoais.
+        raise MercadoPagoErro(f"HTTP {erro.code}", status=erro.code)
     except (urllib.error.URLError, TimeoutError, OSError, ValueError) as erro:
         raise MercadoPagoErro(f"Falha de comunicação: {erro}")
 
